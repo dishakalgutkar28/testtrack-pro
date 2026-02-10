@@ -48,6 +48,7 @@ app.get("/dashboard", (req, res) => {
 
     db.query(sql, (err, result) => {
 
+        
         if (err) {
             res.send("Database error");
         } else {
