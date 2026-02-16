@@ -1,16 +1,21 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <div style={{textAlign:"center",marginTop:"100px"}}>
-      <h2>TestTrack Login</h2>
+      <h2>Login Page</h2>
 
       <input placeholder="Email" /><br/><br/>
-      <input placeholder="Password" type="password"/><br/><br/>
+      <input type="password" placeholder="Password"/><br/><br/>
 
-      <button>Login</button>
+      <button onClick={handleLogin}>Login</button>
     </div>
   );
 }
-
 export default Login;
