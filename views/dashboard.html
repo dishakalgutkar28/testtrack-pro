@@ -40,10 +40,27 @@
     </div>
     <a href="/view-testcases" class="btn btn-info">View Testcases</a>
 <a href="/view-bugs" class="btn btn-secondary">View Bugs</a>
+<a href="/view-testcases" class="btn btn-success">Execute Testcases</a>
+
 
   </div>
+<a href="/execution-report">Execution Report</a>
 
 </div>
+<script>
+const pass = PASS_COUNT;
+const fail = FAIL_COUNT;
+
+new Chart(document.getElementById('chart'), {
+  type: 'pie',
+  data: {
+    labels: ['Pass', 'Fail'],
+    datasets: [{
+      data: [pass, fail]
+    }]
+  }
+});
+</script>
 
 </body>
 </html>
