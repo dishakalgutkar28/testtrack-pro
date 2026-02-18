@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-// CORRECT middleware imports
+// Middleware imports
 const { authMiddleware } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
 
@@ -16,13 +16,17 @@ router.post(
     const { title, description, severity, testcase_id, project_id } = req.body;
 
     if (!title) {
-      return res.status(400).json({ error: "Bug title required" });
+      return res.status(400).json({
+        error: "Bug title is required",
+      });
     }
 
+    const status = "open"; // Default status
+
     const sql = `
-      INSERT INTO bugs 
-      (title, description, severity, testcase_id, project_id)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO bugs
+      (title, description, severity, testcase_id, project_id, status)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
@@ -33,11 +37,14 @@ router.post(
         severity || "medium",
         testcase_id || null,
         project_id || null,
+        status,
       ],
       (err, result) => {
         if (err) {
-          console.log("Bug insert error:", err);
-          return res.status(500).json({ error: "Failed to create bug" });
+          console.error("Bug insert error:", err);
+          return res.status(500).json({
+            error: "Failed to create bug",
+          });
         }
 
         res.status(201).json({
@@ -52,10 +59,12 @@ router.post(
 
 // ================= GET ALL BUGS =================
 router.get("/bugs", authMiddleware, (req, res) => {
-  db.query("SELECT * FROM bugs", (err, results) => {
+  db.query("SELECT * FROM bugs ORDER BY id DESC", (err, results) => {
     if (err) {
-      console.log("Fetch bug error:", err);
-      return res.status(500).json({ error: "Failed to fetch bugs" });
+      console.error("Fetch bug error:", err);
+      return res.status(500).json({
+        error: "Failed to fetch bugs",
+      });
     }
 
     res.json(results);
@@ -71,16 +80,32 @@ router.put(
   (req, res) => {
     const { status } = req.body;
 
+    if (!status) {
+      return res.status(400).json({
+        error: "Status required",
+      });
+    }
+
     db.query(
       "UPDATE bugs SET status=? WHERE id=?",
-      [status || "open", req.params.id],
-      (err) => {
+      [status, req.params.id],
+      (err, result) => {
         if (err) {
-          console.log(err);
-          return res.status(500).json({ error: "Update failed" });
+          console.error("Update bug error:", err);
+          return res.status(500).json({
+            error: "Update failed",
+          });
         }
 
-        res.json({ message: "Bug updated" });
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            error: "Bug not found",
+          });
+        }
+
+        res.json({
+          message: "Bug updated successfully",
+        });
       }
     );
   }
@@ -93,14 +118,28 @@ router.delete(
   authMiddleware,
   requireRole("admin"),
   (req, res) => {
-    db.query("DELETE FROM bugs WHERE id=?", [req.params.id], (err) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ error: "Delete failed" });
-      }
+    db.query(
+      "DELETE FROM bugs WHERE id=?",
+      [req.params.id],
+      (err, result) => {
+        if (err) {
+          console.error("Delete bug error:", err);
+          return res.status(500).json({
+            error: "Delete failed",
+          });
+        }
 
-      res.json({ message: "Bug deleted" });
-    });
+        if (result.affectedRows === 0) {
+          return res.status(404).json({
+            error: "Bug not found",
+          });
+        }
+
+        res.json({
+          message: "Bug deleted successfully",
+        });
+      }
+    );
   }
 );
 

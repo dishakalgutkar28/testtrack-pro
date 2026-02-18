@@ -20,7 +20,7 @@ function Testcase() {
   }, []);
 
   const fetchTestcases = () => {
-    api.get("/api/testcase")
+    api.get("/testcase")
       .then(res => {
         console.log("Testcases:", res.data);
         setTestcases(res.data || []);
@@ -41,7 +41,7 @@ function Testcase() {
     }
 
     setLoading(true);
-    api.post("/api/testcase", { title, description, expected_result: expectedResult, projectId })
+    api.post("/testcase", { title, description, expected_result: expectedResult, projectId })
       .then(() => {
         setSuccess("Testcase added successfully!");
         setTitle("");

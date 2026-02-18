@@ -9,27 +9,34 @@ function Login() {
   const navigate = useNavigate();
 
   const login = () => {
-    api.post("/api/login", { email, password })
+    api.post("/login", { email, password })
       .then(res => {
         if (res.data.success && res.data.token) {
 
-          // ✅ Store token
+          // Store token
           localStorage.setItem("token", res.data.token);
 
-          // ✅ Store role (CRITICAL for ProtectedRoute)
-          if (res.data.role) {
-            localStorage.setItem("role", res.data.role);
+          // Store role
+          const role = res.data.role || "tester";
+          localStorage.setItem("role", role);
+
+          // Store user info
+          localStorage.setItem("user", JSON.stringify({
+            email: res.data.email || email,
+            role
+          }));
+
+          // ⭐ ROLE-BASED REDIRECT
+          if (role === "developer") {
+            navigate("/developer-bugs");
+          } 
+          else if (role === "admin") {
+            navigate("/admin/users");
+          } 
+          else {
+            navigate("/dashboard"); // tester
           }
 
-          // ✅ Optionally store user info
-          const userObj = {
-            email: res.data.email || email,
-            role: res.data.role || "tester"
-          };
-          localStorage.setItem("user", JSON.stringify(userObj));
-
-          // Go to dashboard
-          navigate("/dashboard");
         } else {
           alert(res.data.message || "Login failed");
         }
@@ -46,22 +53,22 @@ function Login() {
         <h2>Login</h2>
 
         <div className="form-group">
-          <input 
+          <input
             className="input-field"
-            placeholder="Email" 
+            placeholder="Email"
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)} 
+            onChange={e => setEmail(e.target.value)}
           />
         </div>
 
         <div className="form-group">
-          <input 
+          <input
             className="input-field"
-            type="password" 
+            type="password"
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)} 
+            onChange={e => setPassword(e.target.value)}
           />
         </div>
 
@@ -71,7 +78,9 @@ function Login() {
 
         <p className="register-link">
           Don't have an account?{" "}
-          <a onClick={() => navigate("/register")}>Register here</a>
+          <a onClick={() => navigate("/register")}>
+            Register here
+          </a>
         </p>
       </div>
     </div>

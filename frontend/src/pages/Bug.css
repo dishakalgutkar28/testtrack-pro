@@ -1,44 +1,26 @@
 .bug-container {
   min-height: 100vh;
-  background: #f7f9fc;
+  background: #f4f6f9;
+  padding-bottom: 40px;
 }
 
 .bug-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 900px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
 .bug-content h1 {
+  text-align: center;
   margin-bottom: 20px;
+  color: #333;
 }
 
-/* Messages */
-.error-message {
-  background: #ffe5e5;
-  color: #b00020;
-  padding: 10px 14px;
-  border-left: 4px solid #b00020;
-  margin-bottom: 15px;
-  border-radius: 4px;
-}
-
-.success-message {
-  background: #e6ffea;
-  color: #1b7f2a;
-  padding: 10px 14px;
-  border-left: 4px solid #1b7f2a;
-  margin-bottom: 15px;
-  border-radius: 4px;
-}
-
-/* Form */
 .bug-form-section {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
   margin-bottom: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .form-group {
@@ -54,44 +36,50 @@
 }
 
 .textarea {
-  resize: vertical;
+  min-height: 80px;
 }
 
 .submit-btn {
-  background: #4caf50;
-  color: #fff;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
   border: none;
-  padding: 12px 18px;
   border-radius: 6px;
-  cursor: pointer;
   font-weight: bold;
+  cursor: pointer;
 }
 
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.submit-btn:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
 }
 
-/* Bug list */
-.bugs-list-section {
-  margin-top: 20px;
+.error-message {
+  background: #ffe5e5;
+  color: #b30000;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  background: #e6ffe6;
+  color: #006600;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
 }
 
 .bugs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 15px;
+  gap: 15px;
 }
 
 .bug-card {
-  background: #ffffff;
-  padding: 16px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding: 15px;
+  border-radius: 8px;
+  background: #f9fafc;
+  border: 1px solid #e5e7eb;
 }
 
 .bug-header {
@@ -100,45 +88,36 @@
   align-items: center;
 }
 
-.bug-header h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  text-transform: capitalize;
-  font-weight: bold;
-}
-
-.status-open {
-  background: #ffe08a;
-  color: #7a5a00;
-}
-
-.status-fixed {
-  background: #c8f7c5;
-  color: #1f7a1f;
-}
-
-.status-closed {
-  background: #e0e0e0;
+.bug-description {
+  margin-top: 8px;
   color: #555;
 }
 
-.bug-description {
-  font-size: 14px;
-  color: #333;
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
-.bug-meta {
-  font-size: 12px;
-  color: #777;
+/* Status colors */
+.status-open {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-progress {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status-closed {
+  background: #dcfce7;
+  color: #16a34a;
 }
 
 .empty-message {
-  color: #666;
-  margin-top: 10px;
+  text-align: center;
+  color: #888;
 }

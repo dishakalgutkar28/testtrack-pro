@@ -50,7 +50,7 @@ function Register() {
 
     setLoading(true);
     // Only register as tester - no role selection on frontend
-    api.post("/api/register", { email, password, role: "tester" })
+    api.post("/register", { email, password, role: "tester" })
       .then(() => {
         setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => navigate("/login"), 2000);
