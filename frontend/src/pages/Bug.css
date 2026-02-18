@@ -1,0 +1,144 @@
+.bug-container {
+  min-height: 100vh;
+  background: #f7f9fc;
+}
+
+.bug-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.bug-content h1 {
+  margin-bottom: 20px;
+}
+
+/* Messages */
+.error-message {
+  background: #ffe5e5;
+  color: #b00020;
+  padding: 10px 14px;
+  border-left: 4px solid #b00020;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.success-message {
+  background: #e6ffea;
+  color: #1b7f2a;
+  padding: 10px 14px;
+  border-left: 4px solid #1b7f2a;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+/* Form */
+.bug-form-section {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.submit-btn {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Bug list */
+.bugs-list-section {
+  margin-top: 20px;
+}
+
+.bugs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 15px;
+}
+
+.bug-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bug-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+
+.status-open {
+  background: #ffe08a;
+  color: #7a5a00;
+}
+
+.status-fixed {
+  background: #c8f7c5;
+  color: #1f7a1f;
+}
+
+.status-closed {
+  background: #e0e0e0;
+  color: #555;
+}
+
+.bug-description {
+  font-size: 14px;
+  color: #333;
+}
+
+.bug-meta {
+  font-size: 12px;
+  color: #777;
+}
+
+.empty-message {
+  color: #666;
+  margin-top: 10px;
+}
