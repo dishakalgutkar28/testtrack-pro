@@ -78,17 +78,55 @@ router.put(
   authMiddleware,
   requireRole("developer", "admin"),
   (req, res) => {
-    const { status } = req.body;
+    const { status, assigned_to, due_date } = req.body;
+    const userRole = req.user.role;
 
-    if (!status) {
+    // Build dynamic update query
+    const updates = [];
+    const values = [];
+
+    // Developers can only update status
+    if (userRole === "developer") {
+      if (status) {
+        updates.push("status=?");
+        values.push(status);
+      }
+      if (assigned_to !== undefined || due_date !== undefined) {
+        return res.status(403).json({
+          error: "Developers can only update bug status. Assignment and due dates are managed by admins.",
+        });
+      }
+    }
+
+    // Admins can update everything
+    if (userRole === "admin") {
+      if (status) {
+        updates.push("status=?");
+        values.push(status);
+      }
+      
+      if (assigned_to !== undefined) {
+        updates.push("assigned_to=?");
+        values.push(assigned_to || null);
+      }
+
+      if (due_date !== undefined) {
+        updates.push("due_date=?");
+        values.push(due_date || null);
+      }
+    }
+
+    if (updates.length === 0) {
       return res.status(400).json({
-        error: "Status required",
+        error: "No fields to update",
       });
     }
 
+    values.push(req.params.id);
+
     db.query(
-      "UPDATE bugs SET status=? WHERE id=?",
-      [status, req.params.id],
+      `UPDATE bugs SET ${updates.join(", ")} WHERE id=?`,
+      values,
       (err, result) => {
         if (err) {
           console.error("Update bug error:", err);
@@ -138,6 +176,26 @@ router.delete(
         res.json({
           message: "Bug deleted successfully",
         });
+      }
+    );
+  }
+);
+
+// ================= GET DEVELOPERS FOR ASSIGNMENT =================
+router.get(
+  "/developers",
+  authMiddleware,
+  (req, res) => {
+    db.query(
+      "SELECT id, email FROM users WHERE role='developer'",
+      (err, results) => {
+        if (err) {
+          console.error("Get developers error:", err);
+          return res.status(500).json({
+            error: "Failed to fetch developers",
+          });
+        }
+        res.json(results);
       }
     );
   }

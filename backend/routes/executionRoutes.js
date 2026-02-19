@@ -11,9 +11,9 @@ const { requireRole } = require("../middleware/roleMiddleware");
 router.post(
   "/execution",
   authMiddleware,
-  requireRole("tester"),
+  requireRole("tester", "admin"),
   (req, res) => {
-    const { testcase_id, status, notes } = req.body;
+    const { testcase_id, status, notes, project_id } = req.body;
 
     if (!testcase_id || !status) {
       return res.status(400).json({
@@ -22,8 +22,8 @@ router.post(
     }
 
     db.query(
-      "INSERT INTO executions (testcase_id, status, notes) VALUES (?, ?, ?)",
-      [testcase_id, status, notes || null],
+      "INSERT INTO executions (testcase_id, status, notes, project_id) VALUES (?, ?, ?, ?)",
+      [testcase_id, status, notes || null, project_id || null],
       (err, result) => {
         if (err) {
           console.log("Execution insert error:", err);
@@ -44,7 +44,7 @@ router.post(
 
 // ================= GET EXECUTIONS =================
 router.get("/execution", authMiddleware, (req, res) => {
-  db.query("SELECT * FROM executions", (err, results) => {
+  db.query("SELECT * FROM executions ORDER BY id DESC", (err, results) => {
     if (err) {
       console.log(err);
       return res.status(500).json({

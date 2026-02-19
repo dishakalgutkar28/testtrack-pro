@@ -17,9 +17,11 @@ router.post(
       expected_result,
       expectedResult,
       projectId,
+      priority,
     } = req.body;
 
     const finalExpected = expected_result || expectedResult;
+    const finalPriority = priority || 'medium';
 
     if (!title || !description || !finalExpected) {
       return res.status(400).json({
@@ -29,13 +31,13 @@ router.post(
 
     const sql = `
       INSERT INTO testcases
-      (title, description, expected_result, project_id)
-      VALUES (?, ?, ?, ?)
+      (title, description, expected_result, project_id, priority)
+      VALUES (?, ?, ?, ?, ?)
     `;
 
     db.query(
       sql,
-      [title, description, finalExpected, projectId || null],
+      [title, description, finalExpected, projectId || null, finalPriority],
       (err, result) => {
         if (err) {
           console.error("Add testcase error:", err);

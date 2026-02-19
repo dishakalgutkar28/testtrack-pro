@@ -39,8 +39,17 @@ function Navbar() {
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
+            <button className="nav-btn" onClick={() => navigate("/execute")}>
+              Execute
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/execution-history")}>
+              History
+            </button>
             <button className="nav-btn" onClick={() => navigate("/bug")}>
               Report Bug
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/reports")}>
+              Reports
             </button>
           </>
         )}
@@ -54,8 +63,14 @@ function Navbar() {
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
+            <button className="nav-btn" onClick={() => navigate("/execution-history")}>
+              History
+            </button>
             <button className="nav-btn" onClick={() => navigate("/bug")}>
               Fix Bugs
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/reports")}>
+              Reports
             </button>
           </>
         )}
@@ -72,8 +87,17 @@ function Navbar() {
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
+            <button className="nav-btn" onClick={() => navigate("/execute")}>
+              Execute
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/execution-history")}>
+              History
+            </button>
             <button className="nav-btn" onClick={() => navigate("/bug")}>
               Bugs
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/reports")}>
+              Reports
             </button>
           </>
         )}

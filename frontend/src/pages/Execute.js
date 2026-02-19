@@ -23,11 +23,11 @@ function Execute() {
     }
 
     setLoading(true);
-    api.post("/api/execute", { 
-      testcaseId, 
+    api.post("/execution", { 
+      testcase_id: testcaseId, 
       status,
       notes,
-      projectId
+      project_id: projectId
     })
       .then(() => {
         setSuccess("Execution saved successfully!");

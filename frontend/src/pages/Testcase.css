@@ -29,6 +29,10 @@
   margin-top: 30px;
 }
 
+.testcase-layout.full-width {
+  grid-template-columns: 1fr;
+}
+
 .add-form-section,
 .list-section {
   display: flex;
@@ -49,6 +53,16 @@
   font-size: 20px;
   margin-bottom: 20px;
   font-weight: 600;
+}
+
+.info-banner {
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid #2196f3;
+  font-size: 14px;
 }
 
 .error-message {
@@ -195,6 +209,37 @@
   border-radius: 3px;
   font-size: 12px;
   font-weight: 600;
+}
+
+.testcase-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Priority Badges */
+.priority-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.priority-low {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.priority-medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.priority-high {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .testcase-description {

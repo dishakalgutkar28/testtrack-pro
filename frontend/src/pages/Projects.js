@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import "./Projects.css";
 
 function Projects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -111,7 +113,12 @@ function Projects() {
           ) : (
             <div className="projects-grid">
               {projects.map(project => (
-                <div key={project.id} className="project-card">
+                <div 
+                  key={project.id} 
+                  className="project-card"
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="project-header">
                     <h3>{project.name}</h3>
                     <span className="project-id">ID: {project.id}</span>
@@ -121,6 +128,7 @@ function Projects() {
                   )}
                   <div className="project-footer">
                     <span className="project-badge">Active</span>
+                    <span className="view-details">Click to view →</span>
                   </div>
                 </div>
               ))}

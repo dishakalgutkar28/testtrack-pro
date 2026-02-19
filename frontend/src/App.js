@@ -9,6 +9,10 @@ import Bug from "./pages/Bug";
 import DeveloperBug from "./pages/DeveloperBug";
 import AdminDashboard from "./pages/AdminDashboard";
 import Projects from "./pages/Projects";
+import ProjectDetails from "./pages/ProjectDetails";
+import Execute from "./pages/Execute";
+import ExecutionHistory from "./pages/ExecutionHistory";
+import Reports from "./pages/Reports";
 
 import ProtectedRoute from "./components/protectedRouter";
 
@@ -51,7 +55,7 @@ function App() {
         <Route
           path="/bug"
           element={
-            <ProtectedRoute allowedRoles={["tester"]}>
+            <ProtectedRoute allowedRoles={["tester", "admin"]}>
               <Bug />
             </ProtectedRoute>
           }
@@ -82,13 +86,53 @@ function App() {
           path="/projects"
           element={
             <ProtectedRoute allowedRoles={["tester", "developer", "admin"]}>
-              <Projects />RootRedirect
+              <Projects />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Project Details Page */}
+        <Route
+          path="/projects/:id"
+          element={
+            <ProtectedRoute allowedRoles={["tester", "developer", "admin"]}>
+              <ProjectDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Execute Testcase Page */}
+        <Route
+          path="/execute"
+          element={
+            <ProtectedRoute allowedRoles={["tester", "admin"]}>
+              <Execute />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Execution History Page */}
+        <Route
+          path="/execution-history"
+          element={
+            <ProtectedRoute allowedRoles={["tester", "developer", "admin"]}>
+              <ExecutionHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Reports & Analytics Page */}
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute allowedRoles={["tester", "developer", "admin"]}>
+              <Reports />
             </ProtectedRoute>
           }
         />
 
         {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<RootRedirect />} />
 
       </Routes>
     </Router>

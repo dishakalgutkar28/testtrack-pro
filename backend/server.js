@@ -57,6 +57,10 @@ function ensureSchema() {
   addColumnIfMissing('bugs', 'project_id', 'INT NULL');
   addColumnIfMissing('executions', 'project_id', 'INT NULL');
   addColumnIfMissing('projects', 'description', 'TEXT NULL');
+  addColumnIfMissing('executions', 'executed_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP');
+  addColumnIfMissing('bugs', 'assigned_to', 'INT NULL');
+  addColumnIfMissing('bugs', 'due_date', 'DATE NULL');
+  addColumnIfMissing('testcases', 'priority', "ENUM('low', 'medium', 'high') DEFAULT 'medium'");
 }
 
 ensureSchema();

@@ -10,9 +10,11 @@ function Testcase() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [expectedResult, setExpectedResult] = useState("");
+  const [priority, setPriority] = useState("medium");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
     fetchTestcases();
@@ -41,12 +43,13 @@ function Testcase() {
     }
 
     setLoading(true);
-    api.post("/testcase", { title, description, expected_result: expectedResult, projectId })
+    api.post("/testcase", { title, description, expected_result: expectedResult, projectId, priority })
       .then(() => {
         setSuccess("Testcase added successfully!");
         setTitle("");
         setDescription("");
         setExpectedResult("");
+        setPriority("medium");
         fetchTestcases();
         setTimeout(() => setSuccess(""), 3000);
       })
@@ -61,15 +64,21 @@ function Testcase() {
       <Navbar />
       <div className="testcase-content">
         <h1>Test Cases</h1>
-        <p className="subtitle">Manage and create test cases for your projects</p>
+        <p className="subtitle">
+          {role === "developer" 
+            ? "View test cases to understand testing requirements" 
+            : "Manage and create test cases for your projects"}
+        </p>
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        <div className="testcase-layout">
-          <div className="add-form-section">
-            <div className="form-card">
-              <h2>Add New Testcase</h2>
+        <div className={`testcase-layout ${role === "developer" ? "full-width" : ""}`}>
+          {/* Only show form to testers and admins */}
+          {(role === "tester" || role === "admin") && (
+            <div className="add-form-section">
+              <div className="form-card">
+                <h2>Add New Testcase</h2>
 
               <div className="form-group">
                 <label>Title *</label>
@@ -111,6 +120,19 @@ function Testcase() {
                 />
               </div>
 
+              <div className="form-group">
+                <label>Priority *</label>
+                <select 
+                  className="input-field"
+                  value={priority}
+                  onChange={e => setPriority(e.target.value)}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
               <button 
                 className="submit-btn" 
                 onClick={addTestcase}
@@ -120,9 +142,15 @@ function Testcase() {
               </button>
             </div>
           </div>
+          )}
 
           <div className="list-section">
             <div className="list-card">
+              {role === "developer" && (
+                <div className="info-banner">
+                  ℹ️ You are viewing test cases as a <strong>Developer</strong>. Only Testers can create test cases.
+                </div>
+              )}
               <h2>Existing Testcases ({testcases.length})</h2>
               
               {testcases.length === 0 ? (
@@ -133,7 +161,12 @@ function Testcase() {
                     <div key={tc.id} className="testcase-item">
                       <div className="testcase-header">
                         <h3>{tc.title}</h3>
-                        <span className="testcase-id">ID: {tc.id}</span>
+                        <div className="testcase-meta">
+                          <span className={`priority-badge priority-${tc.priority || 'medium'}`}>
+                            {(tc.priority || 'medium').toUpperCase()}
+                          </span>
+                          <span className="testcase-id">ID: {tc.id}</span>
+                        </div>
                       </div>
                       <p className="testcase-description">{tc.description}</p>
                       <p className="testcase-expected"><strong>Expected:</strong> {tc.expected_result}</p>

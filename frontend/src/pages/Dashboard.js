@@ -27,17 +27,18 @@ function Dashboard() {
     try {
       const requests = [
         api.get("/testcase"),
-        api.get("/bugs")
+        api.get("/bugs"),
+        api.get("/projects")
       ];
 
-      const [testcasesRes, bugsRes] = await Promise.all(requests);
+      const [testcasesRes, bugsRes, projectsRes] = await Promise.all(requests);
 
       setData(prev => ({
         ...prev,
         testcases: testcasesRes.data?.length || 0,
         bugs: bugsRes.data?.length || 0,
         executions: 0,
-        projects: 1
+        projects: projectsRes.data?.length || 0
       }));
 
       setLoading(false);
@@ -164,7 +165,8 @@ function Dashboard() {
                 </div>
               </div>
 
-              <div className="stat-card projects-card">
+              <div className="stat-card projects-card"
+                   onClick={() => navigate("/projects")}>
                 <div className="stat-icon">📁</div>
                 <div className="stat-info">
                   <h3>Active Projects</h3>
