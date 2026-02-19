@@ -8,10 +8,17 @@ import Testcase from "./pages/Testcase";
 import Bug from "./pages/Bug";
 import DeveloperBug from "./pages/DeveloperBug";
 import AdminDashboard from "./pages/AdminDashboard";
+import Projects from "./pages/Projects";
 
 import ProtectedRoute from "./components/protectedRouter";
 
 function App() {
+  // Root redirect component
+  const RootRedirect = () => {
+    const token = localStorage.getItem("token");
+    return <Navigate to={token ? "/dashboard" : "/login"} replace />;
+  };
+
   return (
     <Router>
       <Routes>
@@ -66,6 +73,16 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Projects Page */}
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute allowedRoles={["tester", "developer", "admin"]}>
+              <Projects />RootRedirect
             </ProtectedRoute>
           }
         />

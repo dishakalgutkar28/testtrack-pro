@@ -1,160 +1,88 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const authMiddleware = require("../middleware/authMiddleware");
-const { requireRole } = require("../middleware/roleMiddleware");
 const bcrypt = require("bcrypt");
+const { authMiddleware } = require("../middleware/authMiddleware");
+const { requireRole } = require("../middleware/roleMiddleware");
 
-// Get all users (admin only)
-router.get("/admin/users", requireRole('admin'), (req, res) => {
-  db.query("SELECT id, email, role, created_at FROM users", (err, results) => {
-    if (err) {
-      console.log("Database Error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
+
+// ================= GET ALL USERS =================
+router.get("/users", authMiddleware, requireRole("admin"), (req, res) => {
+  db.query("SELECT id, email, role FROM users", (err, results) => {
+    if (err) return res.status(500).json({ error: "Failed to fetch users" });
     res.json(results);
   });
 });
 
-// Create a new user (admin only) - Can be any role
-router.post("/admin/users", requireRole('admin'), async (req, res) => {
+
+// ================= CREATE USER =================
+router.post("/users", authMiddleware, requireRole("admin"), async (req, res) => {
   const { email, password, role } = req.body;
-  
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: "Email, password, and role required" });
-  }
 
-  const validRoles = ['tester', 'developer', 'admin'];
-  if (!validRoles.includes(role)) {
-    return res.status(400).json({ message: "Invalid role" });
-  }
+  if (!email || !password || !role)
+    return res.status(400).json({ error: "All fields required" });
 
-  // Validate password
-  const minLength = 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  // Validate password strength
+  if (password.length < 6)
+    return res.status(400).json({ error: "Password must be at least 6 characters" });
 
-  if (password.length < minLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-    return res.status(400).json({ 
-      message: "Password must be at least 8 characters with uppercase, lowercase, number, and special character" 
-    });
-  }
+  try {
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Check if user exists
-  db.query("SELECT * FROM users WHERE email=?", [email], async (err, result) => {
-    if (err) {
-      console.log("Database Error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-
-    if (result.length > 0) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
-
-    try {
-      const hashed = await bcrypt.hash(password, 10);
-      db.query(
-        "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
-        [email, hashed, role],
-        (err, result) => {
-          if (err) {
-            console.log("Database Error:", err);
-            return res.status(500).json({ message: "Failed to create user" });
+    db.query(
+      "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
+      [email, hashedPassword, role],
+      err => {
+        if (err) {
+          if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ error: "Email already exists" });
           }
-
-          res.json({ 
-            success: true, 
-            message: `User created successfully as ${role}`,
-            userId: result.insertId
-          });
+          return res.status(500).json({ error: "Failed to create user" });
         }
-      );
-    } catch (e) {
-      console.log("Hashing error:", e);
-      return res.status(500).json({ message: "Failed to create user" });
-    }
-  });
+        res.json({ message: "User created successfully" });
+      }
+    );
+  } catch (err) {
+    res.status(500).json({ error: "Failed to hash password" });
+  }
 });
 
-// Update user role (admin only)
-router.put("/admin/users/:id/role", requireRole('admin'), (req, res) => {
+
+// ================= UPDATE USER ROLE =================
+router.put("/users/:id", authMiddleware, requireRole("admin"), (req, res) => {
+  const { id } = req.params;
   const { role } = req.body;
-  const validRoles = ['tester', 'developer', 'admin'];
-  
-  if (!validRoles.includes(role)) {
-    return res.status(400).json({ message: "Invalid role" });
+
+  if (!role || !["tester", "developer", "admin"].includes(role)) {
+    return res.status(400).json({ error: "Invalid role" });
   }
 
-  db.query("UPDATE users SET role=? WHERE id=?", [role, req.params.id], (err, result) => {
-    if (err) {
-      console.log("Database Error:", err);
-      return res.status(500).json({ message: "Database error" });
+  db.query(
+    "UPDATE users SET role = ? WHERE id = ?",
+    [role, id],
+    err => {
+      if (err) return res.status(500).json({ error: "Failed to update user" });
+      res.json({ message: "User role updated successfully" });
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    res.json({ message: "User role updated successfully" });
-  });
+  );
 });
 
-// Delete user (admin only)
-router.delete("/admin/users/:id", requireRole('admin'), (req, res) => {
-  const userId = req.params.id;
-  
-  if (parseInt(userId) === req.user.id) {
-    return res.status(400).json({ message: "Cannot delete your own account" });
+
+// ================= DELETE USER =================
+router.delete("/users/:id", authMiddleware, requireRole("admin"), (req, res) => {
+  const { id } = req.params;
+
+  // Prevent admin from deleting themselves
+  if (parseInt(id) === req.user.id) {
+    return res.status(400).json({ error: "Cannot delete your own account" });
   }
 
-  db.query("DELETE FROM users WHERE id=?", [userId], (err, result) => {
-    if (err) {
-      console.log("Database Error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
+  db.query("DELETE FROM users WHERE id = ?", [id], err => {
+    if (err) return res.status(500).json({ error: "Failed to delete user" });
     res.json({ message: "User deleted successfully" });
   });
 });
 
-// Reset user password (admin only)
-router.post("/admin/users/:id/reset-password", requireRole('admin'), async (req, res) => {
-  const { password } = req.body;
-  
-  if (!password) {
-    return res.status(400).json({ message: "Password required" });
-  }
-
-  const minLength = 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-
-  if (password.length < minLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-    return res.status(400).json({ 
-      message: "Password must be at least 8 characters with uppercase, lowercase, number, and special character" 
-    });
-  }
-
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    db.query("UPDATE users SET password=? WHERE id=?", [hashed, req.params.id], (err, result) => {
-      if (err) {
-        console.log("Database Error:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      res.json({ message: "Password reset successfully" });
-    });
-  } catch (e) {
-    console.log("Hashing error:", e);
-    return res.status(500).json({ message: "Password reset failed" });
-  }
-});
 
 module.exports = router;

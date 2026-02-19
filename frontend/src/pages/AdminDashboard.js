@@ -1,19 +1,15 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  
-  // Create user form
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserPassword, setNewUserPassword] = useState("");
-  const [newUserRole, setNewUserRole] = useState("tester");
-  const [passwordErrors, setPasswordErrors] = useState([]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("tester");
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -21,155 +17,134 @@ function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get("/api/admin/users");
-      setUsers(response.data);
-      setLoading(false);
-    } catch (error) {
-      setMessage("Failed to fetch users");
-      setLoading(false);
+      const res = await api.get("/admin/users");
+      setUsers(res.data);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch users", type: "error" });
     }
   };
 
   const validatePassword = (pwd) => {
     const errors = [];
-    if (pwd.length < 8) errors.push("At least 8 characters");
-    if (!/[A-Z]/.test(pwd)) errors.push("One uppercase letter");
-    if (!/[a-z]/.test(pwd)) errors.push("One lowercase letter");
-    if (!/[0-9]/.test(pwd)) errors.push("One number");
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) 
-      errors.push("One special character");
+    if (pwd.length < 6) errors.push("Password must be at least 6 characters");
+    if (!/[A-Z]/.test(pwd)) errors.push("Include at least one uppercase letter");
+    if (!/[a-z]/.test(pwd)) errors.push("Include at least one lowercase letter");
+    if (!/[0-9]/.test(pwd)) errors.push("Include at least one number");
     return errors;
   };
 
-  const handlePasswordChange = (e) => {
-    const pwd = e.target.value;
-    setNewUserPassword(pwd);
-    if (pwd.length > 0) {
-      setPasswordErrors(validatePassword(pwd));
-    } else {
-      setPasswordErrors([]);
-    }
-  };
-
   const createUser = async () => {
-    const errors = validatePassword(newUserPassword);
-    if (errors.length > 0) {
-      setMessage("Password does not meet requirements");
+    if (!email || !password) {
+      setMessage({ text: "Email and password are required", type: "error" });
+      return;
+    }
+
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+      setMessage({ text: passwordErrors.join(", "), type: "error" });
       return;
     }
 
     try {
-      await api.post("/api/admin/users", {
-        email: newUserEmail,
-        password: newUserPassword,
-        role: newUserRole
+      await api.post("/admin/users", { email, password, role });
+      setMessage({ text: "User created successfully!", type: "success" });
+      setEmail("");
+      setPassword("");
+      setRole("tester");
+      setShowForm(false);
+      fetchUsers();
+    } catch (err) {
+      setMessage({ 
+        text: err.response?.data?.error || "Failed to create user", 
+        type: "error" 
       });
-      setMessage(`✅ User created successfully as ${newUserRole}`);
-      setNewUserEmail("");
-      setNewUserPassword("");
-      setNewUserRole("tester");
-      setPasswordErrors([]);
-      setShowCreateForm(false);
-      fetchUsers();
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Failed to create user");
-    }
-  };
-
-  const updateUserRole = async (userId, newRole) => {
-    try {
-      await api.put(`/api/admin/users/${userId}/role`, { role: newRole });
-      setMessage("✅ User role updated successfully");
-      fetchUsers();
-    } catch (error) {
-      setMessage(error.response?.data?.message || "Failed to update role");
     }
   };
 
   const deleteUser = async (userId) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await api.delete(`/api/admin/users/${userId}`);
-        setMessage("✅ User deleted successfully");
-        fetchUsers();
-      } catch (error) {
-        setMessage(error.response?.data?.message || "Failed to delete user");
-      }
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      setMessage({ text: "User deleted successfully!", type: "success" });
+      fetchUsers();
+    } catch (err) {
+      setMessage({ text: "Failed to delete user", type: "error" });
     }
   };
 
-  if (loading) return (
-    <div className="admin-dashboard-container">
-      <Navbar />
-      <div className="admin-dashboard">
-        <p>Loading...</p>
-      </div>
-    </div>
-  );
+  const updateRole = async (userId, newRole) => {
+    try {
+      await api.put(`/admin/users/${userId}`, { role: newRole });
+      setMessage({ text: "Role updated successfully!", type: "success" });
+      fetchUsers();
+    } catch (err) {
+      setMessage({ text: "Failed to update role", type: "error" });
+    }
+  };
+
+  const passwordErrors = password ? validatePassword(password) : [];
 
   return (
     <div className="admin-dashboard-container">
       <Navbar />
       <div className="admin-dashboard">
-        <h1>👥 User Management</h1>
-        
-        {message && (
-          <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-            {message}
+        <h1>👨‍💼 Admin Dashboard</h1>
+
+        {message.text && (
+          <div className={`message ${message.type}`}>
+            {message.text}
           </div>
         )}
 
         <div className="create-user-section">
-          <button 
-            className="create-btn"
-            onClick={() => setShowCreateForm(!showCreateForm)}
-          >
-            {showCreateForm ? "Cancel" : "➕ Create New User"}
+          <button className="create-btn" onClick={() => setShowForm(!showForm)}>
+            {showForm ? "Cancel" : "+ Create New User"}
           </button>
 
-          {showCreateForm && (
+          {showForm && (
             <div className="create-form">
               <h2>Create New User</h2>
-              
+
               <div className="form-group">
-                <label>Email *</label>
+                <label>Email:</label>
                 <input
-                  type="email"
-                  placeholder="user@example.com"
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
                   className="input-field"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
 
               <div className="form-group">
-                <label>Password *</label>
+                <label>Password:</label>
                 <input
-                  type="password"
-                  placeholder="Password"
-                  value={newUserPassword}
-                  onChange={handlePasswordChange}
                   className="input-field"
+                  type="password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                 />
-                {passwordErrors.length > 0 && (
+                {password && passwordErrors.length > 0 && (
                   <div className="password-errors">
-                    <p>Password must contain:</p>
-                    {passwordErrors.map((error, idx) => (
-                      <span key={idx} className="error-item">❌ {error}</span>
+                    <p>Password requirements:</p>
+                    {passwordErrors.map((err, idx) => (
+                      <span key={idx} className="error-item">❌ {err}</span>
                     ))}
                   </div>
                 )}
-                {newUserPassword.length > 0 && passwordErrors.length === 0 && (
-                  <span className="success-item">✅ Password is valid</span>
+                {password && passwordErrors.length === 0 && (
+                  <span className="success-item">✅ Password is strong!</span>
                 )}
               </div>
 
               <div className="form-group">
-                <label>Role *</label>
+                <label>Role:</label>
                 <select 
-                  value={newUserRole}
-                  onChange={(e) => setNewUserRole(e.target.value)}
-                  className="input-field"
+                  className="input-field" 
+                  value={role} 
+                  onChange={e => setRole(e.target.value)}
                 >
                   <option value="tester">Tester</option>
                   <option value="developer">Developer</option>
@@ -178,9 +153,9 @@ function AdminDashboard() {
               </div>
 
               <button 
-                className="submit-btn"
+                className="submit-btn" 
                 onClick={createUser}
-                disabled={!newUserEmail || !newUserPassword || passwordErrors.length > 0}
+                disabled={passwordErrors.length > 0}
               >
                 Create User
               </button>
@@ -189,8 +164,7 @@ function AdminDashboard() {
         </div>
 
         <div className="users-table-section">
-          <h2>All Users ({users.length})</h2>
-          
+          <h2>📋 All Users ({users.length})</h2>
           {users.length === 0 ? (
             <p className="no-users">No users found</p>
           ) : (
@@ -200,31 +174,29 @@ function AdminDashboard() {
                   <th>ID</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Created At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.id}</td>
-                    <td>{user.email}</td>
+                {users.map(u => (
+                  <tr key={u.id}>
+                    <td>{u.id}</td>
+                    <td>{u.email}</td>
                     <td>
-                      <select 
-                        value={user.role}
-                        onChange={(e) => updateUserRole(user.id, e.target.value)}
+                      <select
                         className="role-select"
+                        value={u.role}
+                        onChange={e => updateRole(u.id, e.target.value)}
                       >
                         <option value="tester">Tester</option>
                         <option value="developer">Developer</option>
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td>{new Date(user.created_at).toLocaleDateString()}</td>
                     <td>
                       <button 
-                        className="delete-btn"
-                        onClick={() => deleteUser(user.id)}
+                        className="delete-btn" 
+                        onClick={() => deleteUser(u.id)}
                       >
                         Delete
                       </button>

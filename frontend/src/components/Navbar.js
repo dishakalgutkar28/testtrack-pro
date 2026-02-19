@@ -33,6 +33,9 @@ function Navbar() {
         {/* Tester can create testcases and report bugs */}
         {role === "tester" && (
           <>
+            <button className="nav-btn" onClick={() => navigate("/projects")}>
+              Projects
+            </button>
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
@@ -45,6 +48,9 @@ function Navbar() {
         {/* Developer can view testcases and fix bugs */}
         {role === "developer" && (
           <>
+            <button className="nav-btn" onClick={() => navigate("/projects")}>
+              Projects
+            </button>
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
@@ -59,6 +65,9 @@ function Navbar() {
           <>
             <button className="nav-btn" onClick={() => navigate("/admin/users")}>
               Manage Users
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/projects")}>
+              Projects
             </button>
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases

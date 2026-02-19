@@ -8,6 +8,9 @@ const bugRoutes = require("./routes/bugRoutes");
 const executionRoutes = require("./routes/executionRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const projectsRoutes = require("./routes/projectsRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
+
 const db = require('./config/db');
 
 const app = express();
@@ -26,14 +29,15 @@ app.use("/api", bugRoutes);
 app.use("/api", executionRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", projectsRoutes);
-
+app.use("/api/admin", adminRoutes);
 // Ensure projects table and project_id columns exist (simple migration)
 function ensureSchema() {
   // create projects table if not exists
   const createProjects = `
     CREATE TABLE IF NOT EXISTS projects (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL
+      name VARCHAR(255) NOT NULL,
+      description TEXT NULL
     ) ENGINE=InnoDB;
   `;
   db.query(createProjects, err => { if (err) console.log('Create projects error', err); });
@@ -52,6 +56,7 @@ function ensureSchema() {
   addColumnIfMissing('testcases', 'project_id', 'INT NULL');
   addColumnIfMissing('bugs', 'project_id', 'INT NULL');
   addColumnIfMissing('executions', 'project_id', 'INT NULL');
+  addColumnIfMissing('projects', 'description', 'TEXT NULL');
 }
 
 ensureSchema();

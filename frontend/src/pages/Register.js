@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import "./Register.css";
@@ -11,6 +11,14 @@ function Register() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const validatePassword = (pwd) => {
     const errors = [];
