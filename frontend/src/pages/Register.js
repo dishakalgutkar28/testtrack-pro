@@ -29,7 +29,7 @@ function Register() {
     if (!/[A-Z]/.test(pwd)) errors.push("One uppercase letter");
     if (!/[a-z]/.test(pwd)) errors.push("One lowercase letter");
     if (!/[0-9]/.test(pwd)) errors.push("One number");
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) 
+    if (!/[!@#$%^&*()_+=[\]{};':"\\|,.<>/?]/.test(pwd)) 
       errors.push("One special character (!@#$%^&* etc)");
     return errors;
   };
@@ -198,7 +198,7 @@ function Register() {
         </div>
         
         <p className="login-link">
-          Already have an account? <a onClick={() => navigate("/login")}>Login here</a>
+          Already have an account? <button onClick={() => navigate("/login")} className="link-button">Login here</button>
         </p>
       </div>
     </div>

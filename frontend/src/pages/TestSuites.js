@@ -35,44 +35,45 @@ const TestSuites = () => {
       navigate('/login');
       return;
     }
-    // eslint-disable-next-line no-use-before-define
+
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/projects`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProjects(response.data.projects || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('Failed to fetch projects');
+      }
+    };
+
+    const fetchTestSuites = async (projectId = '') => {
+      setLoading(true);
+      try {
+        const url = projectId 
+          ? `${API_BASE_URL}/test-suites?project_id=${projectId}`
+          : `${API_BASE_URL}/test-suites`;
+        
+        const response = await axios.get(url, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        setSuites(response.data.suites || []);
+        setError('');
+      } catch (err) {
+        console.error('Error fetching test suites:', err);
+        setError('Failed to fetch test suites');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProjects();
-    // eslint-disable-next-line no-use-before-define
     fetchTestSuites();
   }, [token, navigate]);
 
-  const fetchProjects = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/projects`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProjects(response.data.projects || []);
-    } catch (err) {
-      console.error('Error fetching projects:', err);
-      setError('Failed to fetch projects');
-    }
-  };
-
-  const fetchTestSuites = async (projectId = '') => {
-    setLoading(true);
-    try {
-      const url = projectId 
-        ? `${API_BASE_URL}/test-suites?project_id=${projectId}`
-        : `${API_BASE_URL}/test-suites`;
-      
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      setSuites(response.data.suites || []);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching test suites:', err);
-      setError('Failed to fetch test suites');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Removed old function definitions - moved inside useEffect above
 
   const handleProjectFilter = (e) => {
     const projectId = e.target.value;

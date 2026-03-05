@@ -13,21 +13,18 @@ function ProjectDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProjectDetails();
-  }, [id]);
-
-  const fetchProjectDetails = async () => {
-    setLoading(true);
-    try {
-      // Fetch project info
-      const projectsRes = await api.get("/projects");
-      console.log("Projects API Response:", projectsRes.data);
-      // The API returns { projects: [...], success: true }
-      const projectsData = projectsRes.data?.projects || projectsRes.data || [];
-      console.log("Projects Data:", projectsData);
-      console.log("Looking for project with ID:", id, "Type:", typeof id);
-      const foundProject = projectsData.find(p => {
-        console.log("Comparing project:", p.id, typeof p.id, "with", parseInt(id));
+    const fetchProjectDetails = async () => {
+      setLoading(true);
+      try {
+        // Fetch project info
+        const projectsRes = await api.get("/projects");
+        console.log("Projects API Response:", projectsRes.data);
+        // The API returns { projects: [...], success: true }
+        const projectsData = projectsRes.data?.projects || projectsRes.data || [];
+        console.log("Projects Data:", projectsData);
+        console.log("Looking for project with ID:", id, "Type:", typeof id);
+        const foundProject = projectsData.find(p => {
+          console.log("Comparing project:", p.id, typeof p.id, "with", parseInt(id));
         return p.id === parseInt(id);
       });
       console.log("Found Project:", foundProject);
@@ -50,7 +47,10 @@ function ProjectDetails() {
     } finally {
       setLoading(false);
     }
-  };
+    };
+
+    fetchProjectDetails();
+  }, [id]);
 
   if (loading) {
     return (

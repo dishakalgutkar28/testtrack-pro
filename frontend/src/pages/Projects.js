@@ -27,27 +27,14 @@ function Projects() {
 
   // Apply filters whenever projects or filter state changes
   useEffect(() => {
-    applyFilters();
-  }, [projects, searchTerm, filterByTestCases, sortBy]);
+    const applyFilters = () => {
+      let filtered = [...projects];
 
-  const fetchProjects = async () => {
-    try {
-      const res = await api.get("/projects/with-stats");
-      setProjects(res.data);
-    } catch (err) {
-      console.error("Error fetching projects:", err);
-      setMessage({ text: "Failed to fetch projects", type: "error" });
-    }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...projects];
-
-    // Filter by test case presence
-    if (filterByTestCases === "hasTests") {
-      filtered = filtered.filter(p => p.testcase_count > 0);
-    } else if (filterByTestCases === "noTests") {
-      filtered = filtered.filter(p => p.testcase_count === 0);
+      // Filter by test case presence
+      if (filterByTestCases === "hasTests") {
+        filtered = filtered.filter(p => p.testcase_count > 0);
+      } else if (filterByTestCases === "noTests") {
+        filtered = filtered.filter(p => p.testcase_count === 0);
     }
 
     // Search filter
@@ -67,6 +54,19 @@ function Projects() {
     }
 
     setFilteredProjects(filtered);
+    };
+
+    applyFilters();
+  }, [projects, searchTerm, filterByTestCases, sortBy]);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get("/projects/with-stats");
+      setProjects(res.data);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+      setMessage({ text: "Failed to fetch projects", type: "error" });
+    }
   };
 
   const createProject = async () => {
