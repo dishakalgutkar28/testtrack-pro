@@ -10,6 +10,7 @@ import "./Bug.css";
 function Bug() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [bugs, setBugs] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [developers, setDevelopers] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

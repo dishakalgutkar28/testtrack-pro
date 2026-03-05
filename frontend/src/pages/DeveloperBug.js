@@ -14,6 +14,8 @@ function DeveloperBug() {
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
   const [expandedBugId, setExpandedBugId] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [fixNotes, setFixNotes] = useState({});
   const [editingFixNotes, setEditingFixNotes] = useState({});
   const [showRetestModal, setShowRetestModal] = useState(null);
   const [retestNotes, setRetestNotes] = useState("");
