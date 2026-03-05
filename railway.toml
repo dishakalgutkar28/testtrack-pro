@@ -1,4 +1,5 @@
 # Railway Configuration for Backend Deployment
+# Force redeploy with updated environment variables
 [build]
 builder = "NIXPACKS"
 buildCommand = "cd backend && npm install --no-audit --no-fund"
