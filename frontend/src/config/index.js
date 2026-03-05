@@ -1,6 +1,19 @@
+const normalizeApiUrl = (url) => {
+  if (!url) return 'http://localhost:5000/api';
+
+  const trimmed = url.trim().replace(/\/+$/, '');
+
+  // Keep existing /api suffix if already provided
+  if (trimmed.endsWith('/api')) {
+    return trimmed;
+  }
+
+  return `${trimmed}/api`;
+};
+
 const config = {
   // API Configuration
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  API_URL: normalizeApiUrl(process.env.REACT_APP_API_URL || 'http://localhost:5000/api'),
   
   // Environment
   ENV: process.env.REACT_APP_ENV || 'development',

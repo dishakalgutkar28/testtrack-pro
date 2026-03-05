@@ -43,7 +43,10 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     const allowedOrigins = config.cors.origin.split(',').map(o => o.trim());
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    const isExplicitlyAllowed = allowedOrigins.indexOf(origin) !== -1;
+    const isVercelPreview = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+
+    if (isExplicitlyAllowed || isVercelPreview) {
       callback(null, true);
     } else {
       console.warn(`⚠️  CORS: Blocked request from origin: ${origin}`);
