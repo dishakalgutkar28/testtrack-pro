@@ -32,6 +32,9 @@ function Reports() {
   const [testcaseStats, setTestcaseStats] = useState(null);
   const [executionStats, setExecutionStats] = useState(null);
   const [bugStats, setBugStats] = useState(null);
+  const [performanceData, setPerformanceData] = useState([]);
+  const [priorityData, setPriorityData] = useState([]);
+  const [automationData, setAutomationData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
