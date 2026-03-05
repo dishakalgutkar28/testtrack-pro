@@ -1,0 +1,9 @@
+# Ignore root-level workspace files
+/package.json
+/pnpm-lock.yaml
+/pnpm-workspace.yaml
+/turbo.json
+/node_modules
+/frontend
+/shared
+/.github
