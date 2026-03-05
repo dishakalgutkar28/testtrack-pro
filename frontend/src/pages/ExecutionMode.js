@@ -20,14 +20,6 @@ const ExecutionMode = () => {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    fetchExecutionData();
-  }, [token, suiteId, executionId, navigate, fetchExecutionData]);
-
   const fetchExecutionData = async () => {
     setLoading(true);
     try {
@@ -45,6 +37,14 @@ const ExecutionMode = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    fetchExecutionData();
+  }, [token, suiteId, executionId, navigate]);
 
   const getCurrentTestcase = () => testcases[currentTestcaseIndex];
   const getCurrentStep = () => {

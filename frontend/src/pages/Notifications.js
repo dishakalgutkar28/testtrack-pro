@@ -14,14 +14,6 @@ const Notifications = () => {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    fetchNotifications();
-  }, [token, navigate, filter, fetchNotifications]);
-
   const fetchNotifications = async () => {
     setLoading(true);
     try {
@@ -42,6 +34,14 @@ const Notifications = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    fetchNotifications();
+  }, [token, navigate, filter]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {

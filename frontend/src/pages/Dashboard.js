@@ -11,8 +11,7 @@ function Dashboard() {
     testcases: 0,
     bugs: 0,
     executions: 0,
-    users: 0,
-    projects: 0
+    users: 0
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -23,7 +22,7 @@ function Dashboard() {
     const userRole = localStorage.getItem("role") || "tester";
     setRole(userRole);
     fetchDashboardData();
-  }, []);
+  }, [navigate]);
 
   const fetchDashboardData = async () => {
     // Verify user is authenticated before making API calls
