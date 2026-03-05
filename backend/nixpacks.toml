@@ -1,6 +1,6 @@
 
 [build]
-cmds = ["npm install --production --no-audit --no-fund"]
+cmds = ["npm install --no-audit --no-fund"]
 
 [start]
 cmd = "node server.js"
