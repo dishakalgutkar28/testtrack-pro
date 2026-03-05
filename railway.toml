@@ -1,9 +1,9 @@
 # Railway Configuration for Backend Deployment
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && npm install --no-audit --no-fund"
+buildCommand = "cd backend && npm install --no-audit --no-fund && chmod +x start.sh"
 
 [deploy]
-startCommand = "cd backend && node server.js"
+startCommand = "cd backend && bash start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
