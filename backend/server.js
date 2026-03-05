@@ -120,6 +120,45 @@ console.log("   DELETE /api/testcase/:id/commits/:commitSha");
 
 // Ensure projects table and project_id columns exist (simple migration)
 function ensureSchema() {
+  // Create base tables first (users, testcases, bugs)
+  const createUsers = `
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(255) NOT NULL UNIQUE,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_email (email)
+    ) ENGINE=InnoDB;
+  `;
+  db.query(createUsers, err => { if (err) console.log('Create users error', err); else console.log('Users table ready'); });
+
+  const createTestcases = `
+    CREATE TABLE IF NOT EXISTS testcases (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT NULL,
+      expected_result TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_title (title)
+    ) ENGINE=InnoDB;
+  `;
+  db.query(createTestcases, err => { if (err) console.log('Create testcases error', err); else console.log('Testcases table ready'); });
+
+  const createBugs = `
+    CREATE TABLE IF NOT EXISTS bugs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      description TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_title (title)
+    ) ENGINE=InnoDB;
+  `;
+  db.query(createBugs, err => { if (err) console.log('Create bugs error', err); else console.log('Bugs table ready'); });
+
   // create projects table if not exists
   const createProjects = `
     CREATE TABLE IF NOT EXISTS projects (
