@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import Comments from "../components/Comments";
+import { useTheme } from "../context/ThemeContext";
 import "./Bug.css";
 
 function DeveloperBug() {
@@ -11,7 +13,13 @@ function DeveloperBug() {
   const [filterSeverity, setFilterSeverity] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
-  const role = localStorage.getItem("role");
+  const [expandedBugId, setExpandedBugId] = useState(null);
+  const [fixNotes, setFixNotes] = useState({});
+  const [editingFixNotes, setEditingFixNotes] = useState({});
+  const [showRetestModal, setShowRetestModal] = useState(null);
+  const [retestNotes, setRetestNotes] = useState("");
+  const { theme } = useTheme();
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   useEffect(() => {
     fetchBugs();
@@ -31,7 +39,7 @@ function DeveloperBug() {
   const fetchProjects = async () => {
     try {
       const res = await api.get("/projects");
-      setProjects(res.data || []);
+      setProjects(res.data?.projects || []);
     } catch (err) {
       console.log("Failed to load projects");
     }
@@ -53,6 +61,38 @@ function DeveloperBug() {
       fetchBugs();
     } catch {
       setMessage({ text: "Failed to update bug", type: "error" });
+    }
+  };
+
+  const updateFixNotes = async (id, notes) => {
+    try {
+      console.log('Saving fix notes for bug:', id, 'Notes:', notes);
+      const response = await api.put(`/bugs/${id}`, { fix_notes: notes });
+      console.log('Save response:', response.data);
+      setMessage({ text: "Fix notes saved successfully!", type: "success" });
+      setFixNotes(prev => ({ ...prev, [id]: notes }));
+      fetchBugs();
+    } catch (err) {
+      console.error('Fix notes save error:', err.response?.data || err);
+      setMessage({ text: err.response?.data?.error || "Failed to save fix notes", type: "error" });
+    }
+  };
+
+  const requestRetest = async (bugId) => {
+    try {
+      await api.post("/retest-requests", {
+        bug_id: bugId,
+        notes: retestNotes
+      });
+      setMessage({ text: "✓ Re-test request sent to testers!", type: "success" });
+      setShowRetestModal(null);
+      setRetestNotes("");
+      fetchBugs();
+    } catch (err) {
+      setMessage({ 
+        text: err.response?.data?.error || "Failed to request re-test", 
+        type: "error" 
+      });
     }
   };
 
@@ -115,12 +155,16 @@ function DeveloperBug() {
   };
 
   return (
-    <div className="bug-container">
+    <div className={`bug-container ${theme}`}>
       <Navbar />
 
       <div className="bug-content">
-        <h1>👨‍💻 Developer Bug Dashboard</h1>
-        <p className="subtitle">Manage and fix reported bugs</p>
+        <div className="bug-header-with-toggle">
+          <div className="bug-header-text">
+            <h1>👨‍💻 Developer Bug Dashboard</h1>
+            <p className="subtitle">Manage and fix reported bugs</p>
+          </div>
+        </div>
 
         {message.text && (
           <div className={`message ${message.type}`}>
@@ -187,7 +231,7 @@ function DeveloperBug() {
 
         {/* Bugs List */}
         <div className="bugs-list-section">
-          <h2>🐛 Bugs ({filteredBugs.length})</h2>
+          <h2>Bugs ({filteredBugs.length})</h2>
 
           {filteredBugs.length === 0 ? (
             <p className="empty-message">No bugs found</p>
@@ -222,7 +266,7 @@ function DeveloperBug() {
                   {role === "admin" ? (
                     <div className="bug-assignment">
                       <div className="form-group">
-                        <label>👤 Assigned To:</label>
+                        <label>Assigned To:</label>
                         <select
                           className="assign-dropdown"
                           value={bug.assigned_to || ""}
@@ -236,7 +280,7 @@ function DeveloperBug() {
                       </div>
 
                       <div className="form-group">
-                        <label>📅 Due Date:</label>
+                        <label>Due Date:</label>
                         <input
                           type="date"
                           className="date-input"
@@ -248,14 +292,117 @@ function DeveloperBug() {
                   ) : (
                     <div className="bug-info">
                       <div className="info-item">
-                        <span className="info-label">👤 Assigned To:</span>
+                        <span className="info-label">Assigned To:</span>
                         <span className="info-value">{getDeveloperName(bug.assigned_to)}</span>
                       </div>
                       {bug.due_date && (
                         <div className="info-item">
-                          <span className="info-label">📅 Due Date:</span>
+                          <span className="info-label">Due Date:</span>
                           <span className="info-value">{new Date(bug.due_date).toLocaleDateString()}</span>
                         </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Fix Notes Section - Developer can edit */}
+                  <div className="fix-notes-section">
+                    <div className="fix-notes-header">
+                      <label>🔧 Fix Notes:</label>
+                      {role === "developer" && (
+                        <button
+                          className="expand-btn"
+                          onClick={() => setExpandedBugId(expandedBugId === bug.id ? null : bug.id)}
+                        >
+                          {expandedBugId === bug.id ? "▼ Collapse" : "▶ Expand"}
+                        </button>
+                      )}
+                    </div>
+                    
+                    {expandedBugId === bug.id ? (
+                      <div className="fix-notes-editor">
+                        <textarea
+                          className="fix-notes-textarea"
+                          placeholder="Document the fix you applied, version numbers, files changed, etc."
+                          value={editingFixNotes[bug.id] !== undefined ? editingFixNotes[bug.id] : (bug.fix_notes || "")}
+                          onChange={(e) => setEditingFixNotes(prev => ({ ...prev, [bug.id]: e.target.value }))}
+                        />
+                        <div className="fix-notes-actions">
+                          <button
+                            className="save-btn"
+                            onClick={() => {
+                              const notes = editingFixNotes[bug.id] !== undefined ? editingFixNotes[bug.id] : (bug.fix_notes || "");
+                              updateFixNotes(bug.id, notes);
+                              setEditingFixNotes(prev => {
+                                const newState = { ...prev };
+                                delete newState[bug.id];
+                                return newState;
+                              });
+                            }}
+                          >
+                            ✓ Save Notes
+                          </button>
+                          <button
+                            className="cancel-btn"
+                            onClick={() => {
+                              setEditingFixNotes(prev => {
+                                const newState = { ...prev };
+                                delete newState[bug.id];
+                                return newState;
+                              });
+                            }}
+                          >
+                            ✕ Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="fix-notes-display">
+                        {bug.fix_notes ? (
+                          <pre>{bug.fix_notes}</pre>
+                        ) : (
+                          <em className="no-notes">No fix notes yet. Click expand to add notes.</em>
+                        )}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Re-test Request Section - Developer can request re-test */}
+                  {role === "developer" && bug.status === "closed" && (
+                    <div className="retest-request-section">
+                      {showRetestModal === bug.id ? (
+                        <div className="retest-modal">
+                          <h4>🔄 Request Re-test</h4>
+                          <textarea
+                            className="retest-notes-textarea"
+                            placeholder="Optional: Add notes for testers about what was fixed and what to test..."
+                            value={retestNotes}
+                            onChange={(e) => setRetestNotes(e.target.value)}
+                          />
+                          <div className="retest-actions">
+                            <button
+                              className="request-retest-btn"
+                              onClick={() => requestRetest(bug.id)}
+                            >
+                              ✓ Send Request
+                            </button>
+                            <button
+                              className="cancel-btn"
+                              onClick={() => {
+                                setShowRetestModal(null);
+                                setRetestNotes("");
+                              }}
+                            >
+                              ✕ Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="retest-button"
+                          onClick={() => setShowRetestModal(bug.id)}
+                        >
+                          🔄 Request Re-test
+                        </button>
                       )}
                     </div>
                   )}
@@ -270,6 +417,9 @@ function DeveloperBug() {
                       {(bug.status || "open").toUpperCase()}
                     </span>
                   </div>
+
+                  {/* Bug Comments */}
+                  <Comments bugId={bug.id} />
                 </div>
               ))}
             </div>

@@ -1,0 +1,23 @@
+const authRoutes = require("./routes/authRoutes");
+const testcaseRoutes = require("./routes/testcaseRoutes");
+const bugRoutes = require("./routes/bugRoutes");
+const executionRoutes = require("./routes/executionRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const projectsRoutes = require("./routes/projectsRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const commentRoutes = require("./routes/commentRoutes");
+const csvRoutes = require("./routes/csvRoutes");
+const lifecycleRoutes = require("./routes/lifecycleRoutes");
+const commitRoutes = require("./routes/commitRoutes");
+
+console.log("authRoutes:", typeof authRoutes, authRoutes ? "✓" : "✗");
+console.log("testcaseRoutes:", typeof testcaseRoutes, testcaseRoutes ? "✓" : "✗");
+console.log("bugRoutes:", typeof bugRoutes, bugRoutes ? "✓" : "✗");
+console.log("executionRoutes:", typeof executionRoutes, executionRoutes ? "✓" : "✗");
+console.log("dashboardRoutes:", typeof dashboardRoutes, dashboardRoutes ? "✓" : "✗");
+console.log("projectsRoutes:", typeof projectsRoutes, projectsRoutes ? "✓" : "✗");
+console.log("adminRoutes:", typeof adminRoutes, adminRoutes ? "✓" : "✗");
+console.log("commentRoutes:", typeof commentRoutes, commentRoutes ? "✓" : "✗");
+console.log("csvRoutes:", typeof csvRoutes, csvRoutes ? "✓" : "✗");
+console.log("lifecycleRoutes:", typeof lifecycleRoutes, lifecycleRoutes ? "✓" : "✗");
+console.log("commitRoutes:", typeof commitRoutes, commitRoutes ? "✓" : "✗");

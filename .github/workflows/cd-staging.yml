@@ -1,0 +1,118 @@
+name: CD Staging - Deploy to Staging Environment
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.testtrackpro.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      # Backend Deployment
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci --production
+      
+      - name: Run database migrations
+        working-directory: ./backend
+        env:
+          DB_HOST: ${{ secrets.STAGING_DB_HOST }}
+          DB_USER: ${{ secrets.STAGING_DB_USER }}
+          DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.STAGING_DB_NAME }}
+        run: |
+          echo "Running database migrations..."
+          # Add your migration script here
+          # npm run migrate
+      
+      - name: Deploy backend to Railway/Render
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_STAGING_TOKEN }}
+        run: |
+          npm i -g @railway/cli
+          railway up --service backend --environment staging
+      
+      # Frontend Deployment
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_URL: ${{ secrets.STAGING_API_URL }}
+          REACT_APP_ENV: staging
+        run: npm run build
+      
+      - name: Deploy frontend to Vercel
+        working-directory: ./frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_STAGING }}
+        run: |
+          npm i -g vercel
+          vercel --prod --token=$VERCEL_TOKEN
+      
+      # Health Checks
+      - name: Wait for deployment
+        run: sleep 30
+      
+      - name: Health check - Backend
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.STAGING_API_URL }}/health)
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend health check passed"
+          else
+            echo "❌ Backend health check failed with status $response"
+            exit 1
+          fi
+      
+      - name: Health check - Frontend
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://staging.testtrackpro.com)
+          if [ $response -eq 200 ]; then
+            echo "✅ Frontend health check passed"
+          else
+            echo "❌ Frontend health check failed with status $response"
+            exit 1
+          fi
+      
+      # Smoke Tests
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          # Add smoke test script here
+          # npm run test:smoke
+      
+      # Notifications
+      - name: Notify on Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Staging Deployment: ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            URL: https://staging.testtrackpro.com
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

@@ -6,10 +6,13 @@ import "./Register.css";
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [lastRegisteredEmail, setLastRegisteredEmail] = useState("");
   const [passwordErrors, setPasswordErrors] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const navigate = useNavigate();
 
   // Redirect if already logged in
@@ -45,8 +48,13 @@ function Register() {
     setError("");
     setSuccess("");
     
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       setError("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -59,9 +67,15 @@ function Register() {
     setLoading(true);
     // Only register as tester - no role selection on frontend
     api.post("/register", { email, password, role: "tester" })
-      .then(() => {
-        setSuccess("Registration successful! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
+      .then((res) => {
+        setSuccess(res.data.message || "Registration successful! Please check your email to verify your account.");
+        setLastRegisteredEmail(email);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setPasswordErrors([]);
+        setLoading(false);
+        // Don't redirect immediately - user needs to verify email
       })
       .catch((err) => {
         setError(err.response?.data?.message || "Registration failed. Please try again.");
@@ -69,8 +83,35 @@ function Register() {
       });
   };
 
+  const resendVerification = async () => {
+    const targetEmail = (email || lastRegisteredEmail).trim();
+
+    if (!targetEmail) {
+      setError("Please enter your email to resend verification.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    setResendLoading(true);
+
+    try {
+      const res = await api.post("/resend-verification", { email: targetEmail });
+      setSuccess(res.data.message || "Verification email sent! Please check your inbox.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to resend verification email.");
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
   return (
-    <div className="register-container">
+    <div className="register-container" style={{
+      backgroundImage: 'url(/images/reg.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }}>
       <div className="register-card">
         <h2>Create Tester Account</h2>
         <p className="account-type-note">Register as a Tester</p>
@@ -109,15 +150,52 @@ function Register() {
           )}
         </div>
 
+        <div className="form-group">
+          <input 
+            className="input-field"
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+          />
+          {confirmPassword.length > 0 && password.length > 0 && (
+            confirmPassword === password ? (
+              <span className="requirement-success">✓ Passwords match</span>
+            ) : (
+              <span className="requirement-error">❌ Passwords do not match</span>
+            )
+          )}
+        </div>
+
         <button 
           className="register-btn" 
           onClick={register}
-          disabled={loading || passwordErrors.length > 0}
+          disabled={loading || passwordErrors.length > 0 || password !== confirmPassword || !confirmPassword}
         >
           {loading ? "Registering..." : "Register as Tester"}
         </button>
 
+        <button
+          className="resend-btn"
+          onClick={resendVerification}
+          disabled={resendLoading}
+          type="button"
+        >
+          {resendLoading ? "Sending..." : "Resend verification email"}
+        </button>
+
         <p className="note">For Developer or Admin roles, please contact your administrator.</p>
+
+        <div className="password-criteria">
+          <p className="criteria-title">Password Criteria:</p>
+          <ul className="criteria-list">
+            <li>At least 8 characters</li>
+            <li>One uppercase letter (A-Z)</li>
+            <li>One lowercase letter (a-z)</li>
+            <li>One number (0-9)</li>
+            <li>One special character (!@#$%^&* etc)</li>
+          </ul>
+        </div>
         
         <p className="login-link">
           Already have an account? <a onClick={() => navigate("/login")}>Login here</a>

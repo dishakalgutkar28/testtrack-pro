@@ -1,329 +1,529 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { useTheme } from "../context/ThemeContext";
 import "./Reports.css";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Pie, Bar, Doughnut } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function Reports() {
-  const [bugs, setBugs] = useState([]);
-  const [testcases, setTestcases] = useState([]);
-  const [executions, setExecutions] = useState([]);
+  const [selectedProject, setSelectedProject] = useState("");
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [testcaseStats, setTestcaseStats] = useState(null);
+  const [executionStats, setExecutionStats] = useState(null);
+  const [bugStats, setBugStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
+  // Load projects on mount
   useEffect(() => {
-    fetchAllData();
+    const loadProjects = async () => {
+      try {
+        const res = await api.get("/projects");
+        const projectsArray = res.data.projects || [];
+        setProjects(projectsArray);
+        // Auto-select first project
+        if (projectsArray && projectsArray.length > 0) {
+          setSelectedProject(projectsArray[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+      }
+    };
+    loadProjects();
   }, []);
 
-  const fetchAllData = async () => {
+  // Fetch analytics data when project or date range changes
+  useEffect(() => {
+    if (!selectedProject) return;
+    fetchAnalytics();
+  }, [selectedProject]);
+
+  const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const [bugsRes, testcasesRes, executionsRes, projectsRes] = await Promise.all([
-        api.get("/bugs"),
-        api.get("/testcase"),
-        api.get("/executions"),
-        api.get("/projects"),
+      const params = { projectId: selectedProject, days: 30 };
+      
+      console.log('📊 Fetching analytics for project:', selectedProject, 'Days:', 30);
+      
+      const [
+        testcasesRes,
+        bugsRes,
+        executionsRes,
+        performanceRes,
+        priorityRes,
+        automationRes
+      ] = await Promise.all([
+        api.get("/analytics/testcases", { params }),
+        api.get("/analytics/bugs", { params }),
+        api.get("/analytics/executions", { params }),
+        api.get("/analytics/performance", { params }),
+        api.get("/analytics/priority-breakdown", { params }),
+        api.get("/analytics/automation-status", { params }),
       ]);
-      setBugs(bugsRes.data || []);
-      setTestcases(testcasesRes.data || []);
-      setExecutions(executionsRes.data || []);
-      setProjects(projectsRes.data || []);
+
+      console.log('📝 Testcase Stats:', testcasesRes.data);
+      console.log('🐛 Bug Stats:', bugsRes.data);
+      console.log('▶️ Execution Stats:', executionsRes.data);
+      console.log('📊 Priority Data:', priorityRes.data);
+      console.log('🤖 Automation Data:', automationRes.data);
+
+      setTestcaseStats(testcasesRes.data || {});
+      setBugStats(bugsRes.data || {});
+      setExecutionStats(executionsRes.data || {});
+      setPerformanceData(performanceRes.data || []);
+      setPriorityData(priorityRes.data || []);
+      setAutomationData(automationRes.data || []);
     } catch (err) {
-      console.error("Failed to fetch data:", err);
+      console.error("Failed to fetch analytics:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Bug Statistics
-  const bugStats = {
-    total: bugs.length,
-    open: bugs.filter(b => b.status === "open").length,
-    inProgress: bugs.filter(b => b.status === "progress").length,
-    closed: bugs.filter(b => b.status === "closed").length,
-    high: bugs.filter(b => b.severity === "high").length,
-    medium: bugs.filter(b => b.severity === "medium").length,
-    low: bugs.filter(b => b.severity === "low").length,
+  // Export to CSV
+  const exportToCSV = () => {
+    if (!selectedProject) {
+      alert("Please select a project first");
+      return;
+    }
+
+    const project = projects.find(p => p.id === selectedProject);
+    const headers = ["Test Track Pro - Analytics Report", "", `Project: ${project?.name}`, `Generated: ${new Date().toLocaleString()}`, ""];
+    const rows = [
+      ["TEST CASE STATISTICS"],
+      ["Total Test Cases", testcaseStats?.total_testcases || 0],
+      ["Draft", testcaseStats?.draft_count || 0],
+      ["Ready", testcaseStats?.ready_count || 0],
+      ["Executing", testcaseStats?.executing_count || 0],
+      ["Completed", testcaseStats?.completed_count || 0],
+      ["Closed", testcaseStats?.closed_count || 0],
+      [""],
+      ["BUG STATISTICS"],
+      ["Total Bugs", bugStats?.total_bugs || 0],
+      ["Open", bugStats?.open_count || 0],
+      ["In Progress", bugStats?.progress_count || 0],
+      ["Closed", bugStats?.closed_count || 0],
+      ["Critical", bugStats?.critical_count || 0],
+      ["High", bugStats?.high_count || 0],
+      ["Medium", bugStats?.medium_count || 0],
+      ["Low", bugStats?.low_count || 0],
+      [""],
+      ["EXECUTION STATISTICS"],
+      ["Total Executions", executionStats?.total_executions || 0],
+      ["Passed", executionStats?.pass_count || 0],
+      ["Failed", executionStats?.fail_count || 0],
+      ["Pending", executionStats?.pending_count || 0],
+      ["Pass Rate (%)", executionStats?.pass_percentage || 0],
+      ["Avg Duration (min)", executionStats?.avg_duration_minutes || 0],
+    ];
+
+    const csv = [...headers, ...rows].map(row => 
+      Array.isArray(row) ? row.map(cell => `"${cell}"`).join(",") : row
+    ).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `testtrack-report-${new Date().getTime()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
-  // Test Execution Statistics
-  const executionStats = {
-    total: executions.length,
-    passed: executions.filter(e => e.status === "pass").length,
-    failed: executions.filter(e => e.status === "fail").length,
-    pending: executions.filter(e => e.status === "pending").length,
+  // Chart configurations
+  const executionChartData = {
+    labels: ["Passed", "Failed", "Pending"],
+    datasets: [
+      {
+        data: [
+          executionStats?.pass_count || 0,
+          executionStats?.fail_count || 0,
+          executionStats?.pending_count || 0
+        ],
+        backgroundColor: (context) => {
+          const { chart, dataIndex } = context;
+          const { ctx, chartArea } = chart;
+
+          // Initial render fallback (chartArea not ready yet)
+          if (!chartArea) {
+            return ["#22c55e", "#ef4444", "#f59e0b"][dataIndex];
+          }
+
+          const gradient = ctx.createLinearGradient(
+            chartArea.left,
+            chartArea.top,
+            chartArea.right,
+            chartArea.bottom
+          );
+
+          // Passed
+          if (dataIndex === 0) {
+            gradient.addColorStop(0, "#86efac");
+            gradient.addColorStop(1, "#16a34a");
+          }
+          // Failed
+          else if (dataIndex === 1) {
+            gradient.addColorStop(0, "#fda4af");
+            gradient.addColorStop(1, "#dc2626");
+          }
+          // Pending
+          else {
+            gradient.addColorStop(0, "#fde68a");
+            gradient.addColorStop(1, "#d97706");
+          }
+
+          return gradient;
+        },
+        borderColor: ["#14532d", "#7f1d1d", "#78350f"],
+        borderWidth: 2,
+        hoverOffset: 12
+      }
+    ]
   };
-  executionStats.passRate = executionStats.total > 0
-    ? ((executionStats.passed / executionStats.total) * 100).toFixed(1)
-    : 0;
 
-  // Test Case Statistics
-  const testcaseStats = {
-    total: testcases.length,
-    high: testcases.filter(t => t.priority === "high").length,
-    medium: testcases.filter(t => t.priority === "medium").length,
-    low: testcases.filter(t => t.priority === "low").length,
+  const bugStatusChartData = {
+    labels: ["Open", "In Progress", "Closed"],
+    datasets: [{
+      label: "Bug Count",
+      data: [
+        bugStats?.open_count || 0,
+        bugStats?.progress_count || 0,
+        bugStats?.closed_count || 0
+      ],
+      backgroundColor: [
+        "rgba(255, 99, 132, 0.88)",  // Open
+        "rgba(255, 159, 64, 0.88)",  // In Progress
+        "rgba(75, 192, 192, 0.88)"   // Closed
+      ],
+      borderColor: [
+        "rgba(239, 68, 68, 1)",
+        "rgba(245, 124, 0, 1)",
+        "rgba(13, 148, 136, 1)"
+      ],
+      borderWidth: 2,
+      borderRadius: 10,
+      borderSkipped: false,
+      barPercentage: 0.62,
+      categoryPercentage: 0.72
+    }]
   };
 
-  // Project Statistics
-  const projectStats = projects.map(project => {
-    const projectBugs = bugs.filter(b => b.project_id === project.id);
-    const projectTestcases = testcases.filter(t => t.project_id === project.id);
-    const projectExecutions = executions.filter(e => e.project_id === project.id);
-    
-    return {
-      name: project.name,
-      bugs: projectBugs.length,
-      openBugs: projectBugs.filter(b => b.status === "open").length,
-      testcases: projectTestcases.length,
-      executions: projectExecutions.length,
-      passedTests: projectExecutions.filter(e => e.status === "pass").length,
-    };
-  });
+  const bugSeverityChartData = {
+    labels: ["Critical", "High", "Medium", "Low"],
+    datasets: [{
+      label: "Bug Count",
+      data: [
+        bugStats?.critical_count || 0,
+        bugStats?.high_count || 0,
+        bugStats?.medium_count || 0,
+        bugStats?.low_count || 0
+      ],
+      backgroundColor: [
+        "rgba(220, 38, 38, 0.9)",   // Critical
+        "rgba(249, 115, 22, 0.88)", // High
+        "rgba(59, 130, 246, 0.86)", // Medium
+        "rgba(139, 92, 246, 0.86)"  // Low
+      ],
+      borderColor: [
+        "rgba(185, 28, 28, 1)",
+        "rgba(234, 88, 12, 1)",
+        "rgba(37, 99, 235, 1)",
+        "rgba(124, 58, 237, 1)"
+      ],
+      borderWidth: 2,
+      borderRadius: 10,
+      borderSkipped: false,
+      barPercentage: 0.62,
+      categoryPercentage: 0.72
+    }]
+  };
 
-  if (loading) {
-    return (
-      <div className="reports-container">
-        <Navbar />
-        <div className="reports-content">
-          <div className="loading-message">Loading reports...</div>
-        </div>
-      </div>
-    );
-  }
+  const testcaseChartData = {
+    labels: ['Draft', 'Ready', 'Executing', 'Deprecated'],
+    datasets: [{
+      data: [
+        testcaseStats?.draft_count || 0,
+        testcaseStats?.ready_count || 0,
+        testcaseStats?.executing_count || 0,
+        testcaseStats?.deprecated_count || 0
+      ],
+      backgroundColor: [
+        'rgba(156, 163, 175, 0.8)',
+        'rgba(34, 197, 94, 0.8)',
+        'rgba(59, 130, 246, 0.8)',
+        'rgba(239, 68, 68, 0.8)'
+      ],
+      borderColor: [
+        'rgba(156, 163, 175, 1)',
+        'rgba(34, 197, 94, 1)',
+        'rgba(59, 130, 246, 1)',
+        'rgba(239, 68, 68, 1)'
+      ],
+      borderWidth: 2
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: theme === 'dark-theme' ? '#e5e7eb' : '#1f2937',
+          padding: 15,
+          font: {
+            size: 12,
+            weight: 500
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: theme === 'dark-theme' ? '#1f2937' : 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: theme === 'dark-theme' ? '#4b5563' : '#e5e7eb',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            const label = context.label || '';
+            const value = context.parsed || context.raw;
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
+    },
+    elements: {
+      arc: {
+        borderJoinStyle: "round"
+      }
+    }
+  };
+
+  const barChartOptions = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      legend: {
+        ...chartOptions.plugins.legend,
+        usePointStyle: true,
+        pointStyle: "circle"
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: theme === "dark-theme" ? "#d1d5db" : "#374151",
+          stepSize: 1
+        },
+        grid: {
+          color: theme === "dark-theme" ? "rgba(148, 163, 184, 0.18)" : "rgba(99, 102, 241, 0.12)"
+        }
+      },
+      x: {
+        ticks: {
+          color: theme === "dark-theme" ? "#d1d5db" : "#374151"
+        },
+        grid: {
+          display: false
+        }
+      }
+    }
+  };
 
   return (
-    <div className="reports-container">
+    <div className={`reports-container ${theme === "dark-theme" ? "dark-theme" : ""}`}>
       <Navbar />
       
+      {/* Theme Toggle Button */}
+      <button 
+        className="theme-toggle-btn"
+        onClick={toggleTheme}
+        aria-label="Toggle theme"
+        title={theme === "dark-theme" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        <span className="theme-icon">{theme === "dark-theme" ? "☀️" : "🌙"}</span>
+      </button>
+
       <div className="reports-content">
         <div className="reports-header">
-          <h1>📊 Analytics & Reports</h1>
-          <p className="subtitle">Comprehensive overview of testing activities and bug tracking</p>
-        </div>
-
-        {/* Overview Cards */}
-        <div className="overview-section">
-          <div className="overview-card projects-card">
-            <div className="card-icon">📁</div>
-            <div className="card-info">
-              <h3>{projects.length}</h3>
-              <p>Total Projects</p>
-            </div>
-          </div>
-
-          <div className="overview-card testcases-card">
-            <div className="card-icon">📝</div>
-            <div className="card-info">
-              <h3>{testcaseStats.total}</h3>
-              <p>Test Cases</p>
-            </div>
-          </div>
-
-          <div className="overview-card executions-card">
-            <div className="card-icon">▶️</div>
-            <div className="card-info">
-              <h3>{executionStats.total}</h3>
-              <p>Executions</p>
-            </div>
-          </div>
-
-          <div className="overview-card bugs-card">
-            <div className="card-icon">🐛</div>
-            <div className="card-info">
-              <h3>{bugStats.total}</h3>
-              <p>Total Bugs</p>
-            </div>
+          <h1>Reports & Analytics</h1>
+          <div className="project-selector">
+            <label htmlFor="project-select">Select Project:</label>
+            <select
+              id="project-select"
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+            >
+              <option value="">-- Select a Project --</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Test Execution Analysis */}
-        <div className="report-section">
-          <h2>🎯 Test Execution Analysis</h2>
-          <div className="stats-grid">
-            <div className="stat-box pass-box">
-              <h4>Passed</h4>
-              <div className="stat-value">{executionStats.passed}</div>
-              <div className="stat-percentage">{executionStats.passRate}% Pass Rate</div>
-            </div>
-
-            <div className="stat-box fail-box">
-              <h4>Failed</h4>
-              <div className="stat-value">{executionStats.failed}</div>
-              <div className="stat-percentage">
-                {executionStats.total > 0 
-                  ? ((executionStats.failed / executionStats.total) * 100).toFixed(1) 
-                  : 0}% Fail Rate
-              </div>
-            </div>
-
-            <div className="stat-box pending-box">
-              <h4>Pending</h4>
-              <div className="stat-value">{executionStats.pending}</div>
-              <div className="stat-percentage">
-                {executionStats.total > 0 
-                  ? ((executionStats.pending / executionStats.total) * 100).toFixed(1) 
-                  : 0}%
-              </div>
-            </div>
+        {!selectedProject ? (
+          <div className="report-section" style={{ textAlign: "center", padding: "40px" }}>
+            <p style={{ fontSize: "18px", color: "#666" }}>Please select a project to view analytics</p>
           </div>
-        </div>
-
-        {/* Bug Analysis */}
-        <div className="report-section">
-          <h2>🐛 Bug Analysis</h2>
-          
-          <div className="analysis-row">
-            <div className="analysis-section">
-              <h3>By Status</h3>
-              <div className="stats-grid">
-                <div className="stat-box open-box">
-                  <h4>Open</h4>
-                  <div className="stat-value">{bugStats.open}</div>
-                </div>
-                <div className="stat-box progress-box">
-                  <h4>In Progress</h4>
-                  <div className="stat-value">{bugStats.inProgress}</div>
-                </div>
-                <div className="stat-box closed-box">
-                  <h4>Closed</h4>
-                  <div className="stat-value">{bugStats.closed}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="analysis-section">
-              <h3>By Severity</h3>
-              <div className="stats-grid">
-                <div className="stat-box high-box">
-                  <h4>High</h4>
-                  <div className="stat-value">{bugStats.high}</div>
-                </div>
-                <div className="stat-box medium-box">
-                  <h4>Medium</h4>
-                  <div className="stat-value">{bugStats.medium}</div>
-                </div>
-                <div className="stat-box low-box">
-                  <h4>Low</h4>
-                  <div className="stat-value">{bugStats.low}</div>
-                </div>
-              </div>
-            </div>
+        ) : loading ? (
+          <div className="report-section" style={{ textAlign: "center", padding: "40px" }}>
+            <p style={{ fontSize: "18px", color: "#666" }}>Loading analytics...</p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Overview Cards */}
+            <div className="overview-section">
+              <div className="overview-card testcases-card">
+                <div className="card-icon">TC</div>
+                <div className="card-info">
+                  <h3>{testcaseStats?.total_testcases || 0}</h3>
+                  <p>Test Cases</p>
+                </div>
+              </div>
 
-        {/* Test Case Priority Distribution */}
-        <div className="report-section">
-          <h2>📝 Test Case Priority Distribution</h2>
-          <div className="stats-grid">
-            <div className="stat-box high-priority-box">
-              <h4>High Priority</h4>
-              <div className="stat-value">{testcaseStats.high}</div>
-              <div className="stat-percentage">
-                {testcaseStats.total > 0 
-                  ? ((testcaseStats.high / testcaseStats.total) * 100).toFixed(1) 
-                  : 0}%
+              <div className="overview-card executions-card">
+                <div className="card-icon">EX</div>
+                <div className="card-info">
+                  <h3>{executionStats?.total_executions || 0}</h3>
+                  <p>Executions</p>
+                </div>
+              </div>
+
+              <div className="overview-card bugs-card">
+                <div className="card-icon">BG</div>
+                <div className="card-info">
+                  <h3>{bugStats?.total_bugs || 0}</h3>
+                  <p>Total Bugs</p>
+                </div>
+              </div>
+
+              <div className="overview-card pass-box">
+                <div className="card-icon">PR</div>
+                <div className="card-info">
+                  <h3>{(executionStats?.pass_percentage || 0).toFixed(1)}%</h3>
+                  <p>Pass Rate</p>
+                </div>
               </div>
             </div>
 
-            <div className="stat-box medium-priority-box">
-              <h4>Medium Priority</h4>
-              <div className="stat-value">{testcaseStats.medium}</div>
-              <div className="stat-percentage">
-                {testcaseStats.total > 0 
-                  ? ((testcaseStats.medium / testcaseStats.total) * 100).toFixed(1) 
-                  : 0}%
+            {/* Test Execution Analysis with Chart */}
+            <div className="report-section">
+              <h2>Test Execution Analysis</h2>
+              <div className="chart-container-wrapper">
+                <div className="chart-container">
+                  <Pie data={executionChartData} options={chartOptions} />
+                </div>
+                <div className="stats-summary">
+                  <div className="stat-item">
+                    <span className="stat-label">Passed:</span>
+                    <span className="stat-number">{executionStats?.pass_count || 0}</span>
+                    <span className="stat-percent">({(executionStats?.pass_percentage || 0).toFixed(1)}%)</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Failed:</span>
+                    <span className="stat-number">{executionStats?.fail_count || 0}</span>
+                    <span className="stat-percent">
+                      ({executionStats?.total_executions > 0 
+                        ? (((executionStats.fail_count) / executionStats.total_executions) * 100).toFixed(1) 
+                        : 0}%)
+                    </span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Pending:</span>
+                    <span className="stat-number">{executionStats?.pending_count || 0}</span>
+                    <span className="stat-percent">
+                      ({executionStats?.total_executions > 0 
+                        ? ((executionStats.pending_count / executionStats.total_executions) * 100).toFixed(1) 
+                        : 0}%)
+                    </span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Avg Duration:</span>
+                    <span className="stat-number">{(executionStats?.avg_duration_minutes || 0).toFixed(1)}</span>
+                    <span className="stat-percent">minutes</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="stat-box low-priority-box">
-              <h4>Low Priority</h4>
-              <div className="stat-value">{testcaseStats.low}</div>
-              <div className="stat-percentage">
-                {testcaseStats.total > 0 
-                  ? ((testcaseStats.low / testcaseStats.total) * 100).toFixed(1) 
-                  : 0}%
+            {/* Bug Analysis with Charts */}
+            <div className="report-section">
+              <h2>Bug Analysis</h2>
+              <div className="charts-row">
+                <div className="chart-box">
+                  <h3>By Status</h3>
+                  <div className="chart-container">
+                    <Bar data={bugStatusChartData} options={barChartOptions} />
+                  </div>
+                </div>
+                <div className="chart-box">
+                  <h3>By Severity</h3>
+                  <div className="chart-container">
+                    <Bar data={bugSeverityChartData} options={barChartOptions} />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Project Overview */}
-        {projectStats.length > 0 && (
-          <div className="report-section">
-            <h2>📁 Project Overview</h2>
-            <div className="project-table-container">
-              <table className="project-table">
-                <thead>
-                  <tr>
-                    <th>Project Name</th>
-                    <th>Test Cases</th>
-                    <th>Executions</th>
-                    <th>Passed Tests</th>
-                    <th>Total Bugs</th>
-                    <th>Open Bugs</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {projectStats.map((project, index) => (
-                    <tr key={index}>
-                      <td className="project-name">{project.name}</td>
-                      <td>{project.testcases}</td>
-                      <td>{project.executions}</td>
-                      <td className="passed-count">{project.passedTests}</td>
-                      <td>{project.bugs}</td>
-                      <td className="open-count">{project.openBugs}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Test Case Distribution with Chart */}
+            <div className="report-section">
+              <h2>Test Case Distribution</h2>
+              <div className="chart-container-wrapper">
+                <div className="chart-container">
+                  <Doughnut data={testcaseChartData} options={chartOptions} />
+                </div>
+                <div className="stats-summary">
+                  <div className="stat-item">
+                    <span className="stat-label">Draft:</span>
+                    <span className="stat-number">{testcaseStats?.draft_count || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Ready:</span>
+                    <span className="stat-number">{testcaseStats?.ready_count || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Executing:</span>
+                    <span className="stat-number">{testcaseStats?.executing_count || 0}</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Deprecated:</span>
+                    <span className="stat-number">{testcaseStats?.deprecated_count || 0}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          </>
         )}
-
-        {/* Summary Insights */}
-        <div className="report-section insights-section">
-          <h2>💡 Key Insights</h2>
-          <div className="insights-grid">
-            <div className="insight-card">
-              <div className="insight-icon">✅</div>
-              <div className="insight-content">
-                <h4>Test Quality</h4>
-                <p>
-                  {executionStats.passRate >= 80 
-                    ? "Excellent pass rate! Keep up the good work." 
-                    : executionStats.passRate >= 60 
-                    ? "Good pass rate, but there's room for improvement." 
-                    : "Pass rate needs attention. Review failed tests."}
-                </p>
-              </div>
-            </div>
-
-            <div className="insight-card">
-              <div className="insight-icon">🐛</div>
-              <div className="insight-content">
-                <h4>Bug Status</h4>
-                <p>
-                  {bugStats.open > 0 
-                    ? `${bugStats.open} bug${bugStats.open > 1 ? 's' : ''} need${bugStats.open === 1 ? 's' : ''} attention.` 
-                    : "No open bugs! Great job!"}
-                  {bugStats.high > 0 && ` ${bugStats.high} high severity.`}
-                </p>
-              </div>
-            </div>
-
-            <div className="insight-card">
-              <div className="insight-icon">📊</div>
-              <div className="insight-content">
-                <h4>Test Coverage</h4>
-                <p>
-                  {testcaseStats.total > 0 
-                    ? `${testcaseStats.total} test case${testcaseStats.total > 1 ? 's' : ''} across ${projects.length} project${projects.length > 1 ? 's' : ''}.` 
-                    : "No test cases created yet."}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

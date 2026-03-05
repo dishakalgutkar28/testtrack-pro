@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { useTheme } from "../context/ThemeContext";
 import "./ExecutionHistory.css";
 
 function ExecutionHistory() {
@@ -10,6 +11,7 @@ function ExecutionHistory() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterProject, setFilterProject] = useState("all");
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   useEffect(() => {
     fetchData();
@@ -25,7 +27,7 @@ function ExecutionHistory() {
       
       setExecutions(execRes.data || []);
       setTestcases(tcRes.data || []);
-      setProjects(projRes.data || []);
+      setProjects(projRes.data.projects || []);
     } catch (err) {
       console.error("Failed to fetch data", err);
     } finally {
@@ -43,11 +45,20 @@ function ExecutionHistory() {
     return proj ? proj.name : "No Project";
   };
 
-  // Filter executions
+  // Filter executions - exclude deleted testcases
   const filteredExecutions = executions.filter(exec => {
+    // First check if testcase still exists
+    const testcaseExists = testcases.some(t => t.id === exec.testcase_id);
+    if (!testcaseExists) return false; // Skip if testcase is deleted
+
     const matchesStatus = filterStatus === "all" || exec.status === filterStatus;
     const matchesProject = filterProject === "all" || exec.project_id == filterProject;
     return matchesStatus && matchesProject;
+  }).sort((a, b) => {
+    // Sort by date in ascending order (oldest first)
+    const dateA = new Date(a.executed_at);
+    const dateB = new Date(b.executed_at);
+    return dateA - dateB;
   });
 
   // Statistics
@@ -62,7 +73,7 @@ function ExecutionHistory() {
 
   if (loading) {
     return (
-      <div className="execution-history-container">
+      <div className={`execution-history-container ${theme}`}>
         <Navbar />
         <div className="loading">Loading execution history...</div>
       </div>
@@ -70,11 +81,15 @@ function ExecutionHistory() {
   }
 
   return (
-    <div className="execution-history-container">
+    <div className={`execution-history-container ${theme}`}>
       <Navbar />
       <div className="execution-history-content">
-        <h1>📊 Execution History</h1>
-        <p className="subtitle">View all test case execution results</p>
+        <div className="header-with-toggle">
+          <div className="header-text">
+            <h1>📊 Execution History</h1>
+            <p className="subtitle">View all test case execution results</p>
+          </div>
+        </div>
 
         {/* Statistics */}
         <div className="stats-grid">
@@ -145,9 +160,9 @@ function ExecutionHistory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredExecutions.map((exec) => (
+                  {filteredExecutions.map((exec, index) => (
                     <tr key={exec.id}>
-                      <td>#{exec.id}</td>
+                      <td>#{index + 1}</td>
                       <td>{getTestcaseTitle(exec.testcase_id)}</td>
                       <td>
                         <span className={`status-badge status-${exec.status}`}>

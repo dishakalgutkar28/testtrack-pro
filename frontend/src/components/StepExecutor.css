@@ -1,0 +1,395 @@
+.step-executor-container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.start-execution {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.start-execution h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.start-execution p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.btn-start-execution {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-start-execution:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-start-execution:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Step Executor Main */
+.step-executor {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.executor-loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Header */
+.executor-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 25px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 30px;
+  align-items: center;
+}
+
+.timer-section {
+  text-align: center;
+}
+
+.timer {
+  font-size: 28px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+  display: block;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 8px;
+  min-width: 140px;
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-section > span {
+  font-size: 14px;
+}
+
+.progress-bar {
+  width: 200px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #00ff88;
+  transition: width 0.3s;
+}
+
+.stats-section {
+  display: flex;
+  gap: 20px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.pass-stat {
+  color: #00ff88;
+}
+
+.fail-stat {
+  color: #ff6b6b;
+}
+
+/* Content Area */
+.executor-content {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.step-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.step-card h3 {
+  color: #333;
+  margin: 0 0 20px 0;
+  font-size: 18px;
+}
+
+.step-detail {
+  margin-bottom: 20px;
+}
+
+.step-detail label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.step-text {
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Result Section */
+.executor-result {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.executor-result label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.result-textarea {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.3s;
+}
+
+.result-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.result-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-pass,
+.btn-fail,
+.btn-skip {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-pass {
+  background: #00cc66;
+  color: white;
+}
+
+.btn-pass:hover {
+  background: #00b359;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 204, 102, 0.3);
+}
+
+.btn-fail {
+  background: #ff6b6b;
+  color: white;
+}
+
+.btn-fail:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-skip {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-skip:hover {
+  background: #ffb300;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+/* Navigation */
+.executor-navigation {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e0e0e0;
+  gap: 20px;
+}
+
+.btn-prev,
+.btn-next {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-prev:hover:not(:disabled),
+.btn-next:hover:not(:disabled) {
+  background: #764ba2;
+  transform: translateY(-2px);
+}
+
+.btn-prev:disabled,
+.btn-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.step-indicators {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.step-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.3s;
+  border: 2px solid #e0e0e0;
+}
+
+.step-indicator:hover {
+  transform: scale(1.1);
+}
+
+.step-indicator.step-pending {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.step-indicator.step-pass {
+  background: #00cc66;
+  color: white;
+  border-color: #00cc66;
+}
+
+.step-indicator.step-fail {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+}
+
+.step-indicator.step-skipped {
+  background: #ffc107;
+  color: #333;
+  border-color: #ffc107;
+}
+
+/* Summary */
+.executor-summary {
+  padding: 15px 30px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+  .executor-header {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .executor-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-height: none;
+  }
+
+  .progress-section > span {
+    font-size: 12px;
+  }
+
+  .progress-bar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .step-executor {
+    margin: 10px 0;
+  }
+
+  .executor-header {
+    padding: 15px;
+  }
+
+  .timer {
+    font-size: 20px;
+  }
+
+  .executor-navigation {
+    flex-wrap: wrap;
+  }
+
+  .btn-prev,
+  .btn-next {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .step-indicators {
+    order: 3;
+    width: 100%;
+  }
+}

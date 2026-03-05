@@ -1,33 +1,39 @@
 {
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "chart.js": "^4.5.1",
-    "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "express-session": "^1.19.0",
-    "jsonwebtoken": "^9.0.3",
-    "mysql2": "^3.16.3",
-    "nodemailer": "^8.0.1",
-    "react-chartjs-2": "^5.3.1"
-  },
   "name": "testtrack-pro",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dishakalgutkar28/testtrack-pro.git"
-  },
-  "keywords": [],
-  "author": "",
+  "description": "TestTrack Pro - Comprehensive Test Management Platform",
+  "author": "TestTrack Pro Team",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/dishakalgutkar28/testtrack-pro/issues"
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "build:watch": "turbo run build:watch",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "install": "pnpm install",
+    "backend:dev": "turbo run dev --filter=@testtrack-pro/backend",
+    "backend:build": "turbo run build --filter=@testtrack-pro/backend",
+    "frontend:dev": "turbo run dev --filter=@testtrack-pro/frontend",
+    "frontend:build": "turbo run build --filter=@testtrack-pro/frontend",
+    "shared:build": "turbo run build --filter=@testtrack-pro/shared"
   },
-  "homepage": "https://github.com/dishakalgutkar28/testtrack-pro#readme"
+  "devDependencies": {
+    "turbo": "^1.10.17"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
 }

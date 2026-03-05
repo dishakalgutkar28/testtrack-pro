@@ -21,16 +21,29 @@ function ProjectDetails() {
     try {
       // Fetch project info
       const projectsRes = await api.get("/projects");
-      const foundProject = projectsRes.data.find(p => p.id === parseInt(id));
+      console.log("Projects API Response:", projectsRes.data);
+      // The API returns { projects: [...], success: true }
+      const projectsData = projectsRes.data?.projects || projectsRes.data || [];
+      console.log("Projects Data:", projectsData);
+      console.log("Looking for project with ID:", id, "Type:", typeof id);
+      const foundProject = projectsData.find(p => {
+        console.log("Comparing project:", p.id, typeof p.id, "with", parseInt(id));
+        return p.id === parseInt(id);
+      });
+      console.log("Found Project:", foundProject);
       setProject(foundProject);
 
       // Fetch test cases for this project
       const testcasesRes = await api.get(`/testcase?projectId=${id}`);
+      console.log("Test Cases Response:", testcasesRes.data);
       setTestcases(testcasesRes.data || []);
 
       // Fetch bugs for this project
       const bugsRes = await api.get("/bugs");
-      const projectBugs = bugsRes.data.filter(b => b.project_id === parseInt(id));
+      console.log("Bugs API Response:", bugsRes.data);
+      const bugsData = Array.isArray(bugsRes.data) ? bugsRes.data : [];
+      const projectBugs = bugsData.filter(b => b.project_id === parseInt(id));
+      console.log("Filtered Bugs:", projectBugs);
       setBugs(projectBugs);
     } catch (err) {
       console.error("Failed to fetch project details", err);

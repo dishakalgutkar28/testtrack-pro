@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import NotificationBell from "./NotificationBell";
+import { useTheme } from "../context/ThemeContext";
 import "./Navbar.css";
 
 function Navbar() {
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     setRole(localStorage.getItem("role") || "tester");
@@ -26,18 +29,22 @@ function Navbar() {
       </div>
 
       <div className="navbar-center">
-        <button className="nav-btn" onClick={() => navigate("/dashboard")}>
-          Dashboard
-        </button>
+      
 
         {/* Tester can create testcases and report bugs */}
         {role === "tester" && (
           <>
+          <button className="nav-btn" onClick={() => navigate("/dashboard")}>
+          Dashboard
+        </button>
             <button className="nav-btn" onClick={() => navigate("/projects")}>
               Projects
             </button>
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
+            </button>
+            <button className="nav-btn" onClick={() => navigate("/test-suites")}>
+              Test Suites
             </button>
             <button className="nav-btn" onClick={() => navigate("/execute")}>
               Execute
@@ -57,6 +64,9 @@ function Navbar() {
         {/* Developer can view testcases and fix bugs */}
         {role === "developer" && (
           <>
+          <button className="nav-btn" onClick={() => navigate("/dashboard")}>
+          Dashboard
+        </button>
             <button className="nav-btn" onClick={() => navigate("/projects")}>
               Projects
             </button>
@@ -75,35 +85,28 @@ function Navbar() {
           </>
         )}
 
-        {/* Admin can manage everything */}
+        {/* Admin can manage users and projects only */}
         {role === "admin" && (
           <>
             <button className="nav-btn" onClick={() => navigate("/admin/users")}>
-              Manage Users
+              Dashboard
             </button>
             <button className="nav-btn" onClick={() => navigate("/projects")}>
               Projects
-            </button>
-            <button className="nav-btn" onClick={() => navigate("/testcase")}>
-              Test Cases
-            </button>
-            <button className="nav-btn" onClick={() => navigate("/execute")}>
-              Execute
-            </button>
-            <button className="nav-btn" onClick={() => navigate("/execution-history")}>
-              History
-            </button>
-            <button className="nav-btn" onClick={() => navigate("/bug")}>
-              Bugs
-            </button>
-            <button className="nav-btn" onClick={() => navigate("/reports")}>
-              Reports
             </button>
           </>
         )}
       </div>
 
       <div className="navbar-right">
+        <button
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'light-theme' ? 'dark' : 'light'} mode`}
+        >
+          {theme === 'light-theme' ? '🌙' : '☀️'}
+        </button>
+        <NotificationBell />
         <span className="user-info">
           {email} <span className="role-badge">{role.toUpperCase()}</span>
         </span>

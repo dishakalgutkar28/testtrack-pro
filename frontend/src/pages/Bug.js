@@ -1,21 +1,36 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import Comments from "../components/Comments";
+import Attachments from "../components/Attachments";
+import BugFormModal from "../components/BugFormModal";
+import { useTheme } from "../context/ThemeContext";
 import "./Bug.css";
 
 function Bug() {
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [bugs, setBugs] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [developers, setDevelopers] = useState([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const role = localStorage.getItem("role");
+  const { theme } = useTheme();
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   useEffect(() => {
     fetchBugs();
     fetchDevelopers();
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get("/projects");
+      setProjects(res.data?.projects || []);
+    } catch {
+      console.log("Failed to load projects");
+    }
+  };
 
   const fetchBugs = async () => {
     try {
@@ -40,29 +55,11 @@ function Bug() {
     return dev ? dev.email : "Unassigned";
   };
 
-  const addBug = async () => {
-    setError("");
-    setSuccess("");
-
-    if (!title.trim() || !desc.trim()) {
-      setError("All fields required");
-      return;
-    }
-
-    try {
-      await api.post("/bugs", {
-        title,
-        description: desc
-      });
-
-      setSuccess("Bug added successfully!");
-      setTitle("");
-      setDesc("");
-      fetchBugs();
-    } catch (err) {
-      console.log(err);
-      setError("Failed to add bug");
-    }
+  const handleFormSuccess = () => {
+    setSuccess("Bug reported successfully!");
+    setIsFormOpen(false);
+    fetchBugs();
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   const assignBug = async (bugId, developerId) => {
@@ -90,11 +87,11 @@ function Bug() {
   };
 
   return (
-    <div className="bug-container">
+    <div className={`bug-container ${theme}`}>
       <Navbar />
 
       <div className="bug-content">
-        <h1>🐛 Bug Management</h1>
+        <h1>Bug Management</h1>
         {role === "admin" && (
           <p className="subtitle">Create and manage bug assignments</p>
         )}
@@ -102,32 +99,22 @@ function Bug() {
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
 
-        {/* Bug Form */}
-        <div className="bug-form-section">
-          <div className="form-group">
-            <label>Bug Title</label>
-            <input
-              className="input-field"
-              placeholder="Enter bug title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+        {/* Button to open bug form modal */}
+        {(role === "tester" || role === "admin") && (
+          <div style={{ marginBottom: "20px" }}>
+            <button 
+              className="submit-btn" 
+              onClick={() => {
+                fetchProjects();  // Refresh projects when form opens
+                setIsFormOpen(true);
+              }}
+              style={{ fontSize: "16px", padding: "12px 24px" }}
+            >
+              <span className="btn-icon">+</span>
+              Report New Bug
+            </button>
           </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              className="input-field textarea"
-              placeholder="Describe the bug"
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-            />
-          </div>
-
-          <button className="submit-btn" onClick={addBug}>
-            Add Bug
-          </button>
-        </div>
+        )}
 
         {/* Bug List */}
         <div className="bugs-list-section">
@@ -150,11 +137,11 @@ function Bug() {
                     {bug.description}
                   </p>
 
-                  {/* Assignment Section - Admin can edit, Tester can only view */}
-                  {role === "admin" ? (
+                  {/* Assignment Section */}
+                  {(role === "admin" || role === "tester") ? (
                     <div className="bug-assignment">
                       <div className="form-group">
-                        <label>👤 Assigned To:</label>
+                        <label>Assigned To:</label>
                         <select
                           className="assign-dropdown"
                           value={bug.assigned_to || ""}
@@ -167,40 +154,54 @@ function Bug() {
                         </select>
                       </div>
 
-                      <div className="form-group">
-                        <label>📅 Due Date:</label>
-                        <input
-                          type="date"
-                          className="date-input"
-                          value={bug.due_date?.split('T')[0] || ""}
-                          onChange={(e) => setDueDate(bug.id, e.target.value)}
-                        />
-                      </div>
+                      {role === "admin" && (
+                        <div className="form-group">
+                          <label>Due Date:</label>
+                          <input
+                            type="date"
+                            className="date-input"
+                            value={bug.due_date?.split('T')[0] || ""}
+                            onChange={(e) => setDueDate(bug.id, e.target.value)}
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     (bug.assigned_to || bug.due_date) && (
                       <div className="bug-info">
                         {bug.assigned_to && (
                           <div className="info-item">
-                            <span className="info-label">👤 Assigned To:</span>
+                            <span className="info-label">Assigned To:</span>
                             <span className="info-value">{getDeveloperName(bug.assigned_to)}</span>
                           </div>
                         )}
                         {bug.due_date && (
                           <div className="info-item">
-                            <span className="info-label">📅 Due Date:</span>
+                            <span className="info-label">Due Date:</span>
                             <span className="info-value">{new Date(bug.due_date).toLocaleDateString()}</span>
                           </div>
                         )}
                       </div>
                     )
                   )}
+
+                  <Attachments entityType="bug" entityId={bug.id} />
+
+                  {/* Bug Comments */}
+                  <Comments bugId={bug.id} />
                 </div>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Bug Form Modal */}
+      <BugFormModal 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSuccess={handleFormSuccess}
+      />
     </div>
   );
 }

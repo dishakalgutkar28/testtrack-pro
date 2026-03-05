@@ -1,0 +1,134 @@
+.csv-import-container {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.csv-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-template,
+.btn-export,
+.btn-import {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.btn-template {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.btn-template:hover {
+  background-color: #7c3aed;
+}
+
+.btn-export {
+  background-color: #10b981;
+  color: white;
+}
+
+.btn-export:hover {
+  background-color: #059669;
+}
+
+.btn-import {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-import:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.btn-import:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.csv-import-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+}
+
+.csv-import-section h3 {
+  margin: 0 0 15px 0;
+  color: #1f2937;
+  font-size: 18px;
+}
+
+.file-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.file-input-group input[type="file"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.import-result {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.import-result.success {
+  background-color: #d1fae5;
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.import-result.has-errors {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+}
+
+.import-result h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.import-result p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.error-details {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fee2e2;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.error-details h5 {
+  margin: 0 0 8px 0;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.error-item {
+  padding: 5px;
+  margin: 3px 0;
+  background-color: white;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #7f1d1d;
+}

@@ -1,0 +1,137 @@
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.skeleton-text {
+  margin-bottom: 8px;
+}
+
+.skeleton-rect {
+  border-radius: 8px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Skeleton Text Container */
+.skeleton-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Skeleton Card */
+.skeleton-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-card-image {
+  width: 100%;
+  border-radius: 0;
+}
+
+.skeleton-card-content {
+  padding: 16px;
+}
+
+.skeleton-card-title {
+  margin-bottom: 12px;
+}
+
+/* Skeleton Table */
+.skeleton-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-table-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.skeleton-table-body {
+  padding: 16px;
+}
+
+.skeleton-table-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.skeleton-table-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Skeleton Avatar */
+.skeleton-avatar {
+  flex-shrink: 0;
+}
+
+/* Skeleton Button */
+.skeleton-button {
+  border-radius: 6px;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #2a2a2a 0%,
+      #3a3a3a 20%,
+      #2a2a2a 40%,
+      #2a2a2a 100%
+    );
+    background-size: 200% 100%;
+  }
+  
+  .skeleton-card,
+  .skeleton-table {
+    background: #1e1e1e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .skeleton-table-header {
+    background: #2a2a2a;
+    border-bottom-color: #3a3a3a;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .skeleton-table-header,
+  .skeleton-table-row {
+    grid-template-columns: 1fr;
+  }
+}
