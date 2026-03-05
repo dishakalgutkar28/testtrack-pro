@@ -5,35 +5,11 @@
   "author": "TestTrack Pro Team",
   "license": "ISC",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "backend",
-    "frontend",
-    "shared"
-  ],
   "scripts": {
-    "dev": "turbo run dev --parallel",
-    "build": "turbo run build",
-    "build:watch": "turbo run build:watch",
-    "test": "turbo run test",
-    "test:watch": "turbo run test:watch",
-    "test:coverage": "turbo run test:coverage",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "install": "pnpm install",
-    "backend:dev": "turbo run dev --filter=@testtrack-pro/backend",
-    "backend:build": "turbo run build --filter=@testtrack-pro/backend",
-    "frontend:dev": "turbo run dev --filter=@testtrack-pro/frontend",
-    "frontend:build": "turbo run build --filter=@testtrack-pro/frontend",
-    "shared:build": "turbo run build --filter=@testtrack-pro/shared"
-  },
-  "devDependencies": {
-    "turbo": "^1.10.17"
+    "start": "node backend/server.js",
+    "dev": "cd backend && npm run dev"
   },
   "engines": {
-    "node": ">=16.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "packageManager": "pnpm@8.15.0"
+    "node": ">=16.0.0"
+  }
 }
