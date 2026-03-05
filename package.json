@@ -4,12 +4,5 @@
   "description": "TestTrack Pro - Comprehensive Test Management Platform",
   "author": "TestTrack Pro Team",
   "license": "ISC",
-  "private": true,
-  "scripts": {
-    "start": "node backend/server.js",
-    "dev": "cd backend && npm run dev"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  }
+  "private": true
 }

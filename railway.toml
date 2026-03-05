@@ -1,2 +1,9 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5
+
 [nixpacks]
 rootDirectory = "backend"
