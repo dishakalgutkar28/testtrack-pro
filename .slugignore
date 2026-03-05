@@ -1,0 +1,9 @@
+node_modules/
+frontend/
+shared/
+*.md
+.git/
+.vscode/
+tests/
+*.test.js
+*.test.ts
