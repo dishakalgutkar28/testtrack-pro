@@ -211,7 +211,7 @@ export const validators = {
   }
 };
 
-export default {
+const schemas = {
   loginSchema,
   registerSchema,
   testCaseSchema,
@@ -222,3 +222,5 @@ export default {
   resetPasswordSchema,
   validators
 };
+
+export default schemas;

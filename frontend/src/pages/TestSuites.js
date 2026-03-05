@@ -35,7 +35,9 @@ const TestSuites = () => {
       navigate('/login');
       return;
     }
+    // eslint-disable-next-line no-use-before-define
     fetchProjects();
+    // eslint-disable-next-line no-use-before-define
     fetchTestSuites();
   }, [token, navigate]);
 

@@ -32,8 +32,11 @@ function Reports() {
   const [testcaseStats, setTestcaseStats] = useState(null);
   const [executionStats, setExecutionStats] = useState(null);
   const [bugStats, setBugStats] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [performanceData, setPerformanceData] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [priorityData, setPriorityData] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [automationData, setAutomationData] = useState([]);
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -59,52 +62,54 @@ function Reports() {
   // Fetch analytics data when project or date range changes
   useEffect(() => {
     if (!selectedProject) return;
+
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      try {
+        const params = { projectId: selectedProject, days: 30 };
+        
+        console.log('📊 Fetching analytics for project:', selectedProject, 'Days:', 30);
+        
+        const [
+          testcasesRes,
+          bugsRes,
+          executionsRes,
+          performanceRes,
+          priorityRes,
+          automationRes
+        ] = await Promise.all([
+          api.get("/analytics/testcases", { params }),
+          api.get("/analytics/bugs", { params }),
+          api.get("/analytics/executions", { params }),
+          api.get("/analytics/performance", { params }),
+          api.get("/analytics/priority-breakdown", { params }),
+          api.get("/analytics/automation-status", { params }),
+        ]);
+
+        console.log('📝 Testcase Stats:', testcasesRes.data);
+        console.log('🐛 Bug Stats:', bugsRes.data);
+        console.log('▶️ Execution Stats:', executionsRes.data);
+        console.log('📊 Priority Data:', priorityRes.data);
+        console.log('🤖 Automation Data:', automationRes.data);
+
+        setTestcaseStats(testcasesRes.data || {});
+        setBugStats(bugsRes.data || {});
+        setExecutionStats(executionsRes.data || {});
+        setPerformanceData(performanceRes.data || []);
+        setPriorityData(priorityRes.data || []);
+        setAutomationData(automationRes.data || []);
+      } catch (err) {
+        console.error("Failed to fetch analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAnalytics();
   }, [selectedProject]);
 
-  const fetchAnalytics = async () => {
-    setLoading(true);
-    try {
-      const params = { projectId: selectedProject, days: 30 };
-      
-      console.log('📊 Fetching analytics for project:', selectedProject, 'Days:', 30);
-      
-      const [
-        testcasesRes,
-        bugsRes,
-        executionsRes,
-        performanceRes,
-        priorityRes,
-        automationRes
-      ] = await Promise.all([
-        api.get("/analytics/testcases", { params }),
-        api.get("/analytics/bugs", { params }),
-        api.get("/analytics/executions", { params }),
-        api.get("/analytics/performance", { params }),
-        api.get("/analytics/priority-breakdown", { params }),
-        api.get("/analytics/automation-status", { params }),
-      ]);
-
-      console.log('📝 Testcase Stats:', testcasesRes.data);
-      console.log('🐛 Bug Stats:', bugsRes.data);
-      console.log('▶️ Execution Stats:', executionsRes.data);
-      console.log('📊 Priority Data:', priorityRes.data);
-      console.log('🤖 Automation Data:', automationRes.data);
-
-      setTestcaseStats(testcasesRes.data || {});
-      setBugStats(bugsRes.data || {});
-      setExecutionStats(executionsRes.data || {});
-      setPerformanceData(performanceRes.data || []);
-      setPriorityData(priorityRes.data || []);
-      setAutomationData(automationRes.data || []);
-    } catch (err) {
-      console.error("Failed to fetch analytics:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Export to CSV
+  // eslint-disable-next-line no-unused-vars
   const exportToCSV = () => {
     if (!selectedProject) {
       alert("Please select a project first");
