@@ -1,12 +1,2 @@
-[build]
-builder = "NIXPACKS"
-buildCommand = "npm install --production --no-audit --no-fund"
-
-[deploy]
-startCommand = "node server.js"
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
-
 [nixpacks]
-nixpkgsArchive = "bf744fe90419885eefced41b3e5ae442d732712d"
 rootDirectory = "backend"

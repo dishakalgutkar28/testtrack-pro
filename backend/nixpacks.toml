@@ -1,0 +1,9 @@
+
+[build]
+cmds = ["npm install --production --no-audit --no-fund --prefer-offline"]
+
+[start]
+cmd = "node server.js"
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
