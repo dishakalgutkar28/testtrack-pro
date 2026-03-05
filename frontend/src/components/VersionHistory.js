@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import './VersionHistory.css';
 
@@ -6,11 +6,7 @@ function VersionHistory({ testcaseId, testcaseTitle, onClose }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchHistory();
-  }, [testcaseId]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       const response = await api.get(`/testcase/${testcaseId}/history`);
       setHistory(response.data);
@@ -20,7 +16,11 @@ function VersionHistory({ testcaseId, testcaseTitle, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [testcaseId]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();

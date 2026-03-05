@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
@@ -14,23 +14,7 @@ function AdminTestcaseManagement() {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
-    try {
-      await Promise.all([
-        fetchTestcases(),
-        fetchTesters(),
-        fetchProjects()
-      ]);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
-  };
-
-  const fetchTestcases = async () => {
+  const fetchTestcases = useCallback(async () => {
     try {
       const res = await api.get("/testcase");
       setTestcases(res.data || []);
@@ -40,9 +24,9 @@ function AdminTestcaseManagement() {
       setMessage({ text: "Failed to load testcases", type: "error" });
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTesters = async () => {
+  const fetchTesters = useCallback(async () => {
     try {
       const res = await api.get("/admin/users");
       // Filter only testers
@@ -51,16 +35,32 @@ function AdminTestcaseManagement() {
     } catch (err) {
       console.log("Failed to load testers", err);
     }
-  };
+  }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await api.get("/projects");
       setProjects(res.data?.projects || []);
     } catch (err) {
       console.log("Failed to load projects");
     }
-  };
+  }, []);
+
+  const fetchAllData = useCallback(async () => {
+    try {
+      await Promise.all([
+        fetchTestcases(),
+        fetchTesters(),
+        fetchProjects()
+      ]);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  }, [fetchTestcases, fetchTesters, fetchProjects]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const deleteTestcase = async (testcaseId) => {
     if (!window.confirm("Are you sure you want to delete this test case? This cannot be undone.")) return;

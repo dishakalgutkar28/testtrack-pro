@@ -10,6 +10,7 @@ import "./Bug.css";
 function Bug() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [bugs, setBugs] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [projects, setProjects] = useState([]);
   const [developers, setDevelopers] = useState([]);
   const [error, setError] = useState("");

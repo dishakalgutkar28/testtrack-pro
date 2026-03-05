@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
@@ -29,11 +29,70 @@ function AdminDashboard() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAllData();
+  const fetchUsers = useCallback(async () => {
+    try {
+      const res = await api.get("/admin/users");
+      setUsers(res.data);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch users", type: "error" });
+    }
   }, []);
 
-  const fetchAllData = async () => {
+  const fetchProjects = useCallback(async () => {
+    try {
+      const res = await api.get("/projects");
+      setProjects(res.data?.projects || []);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch projects", type: "error" });
+    }
+  }, []);
+
+  const fetchBugs = useCallback(async () => {
+    try {
+      const res = await api.get("/bugs");
+      setBugs(res.data || []);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch bugs", type: "error" });
+    }
+  }, []);
+
+  const fetchTestcases = useCallback(async () => {
+    try {
+      const res = await api.get("/testcase");
+      setTestcases(res.data || []);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch testcases", type: "error" });
+    }
+  }, []);
+
+  const fetchAuditLogs = useCallback(async () => {
+    try {
+      const res = await api.get("/audit-logs");
+      setAuditLogs(res.data || []);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch audit logs", type: "error" });
+    }
+  }, []);
+
+  const fetchBackups = useCallback(async () => {
+    try {
+      const res = await api.get("/admin/backups");
+      setBackups(res.data || []);
+    } catch (err) {
+      setMessage({ text: "Failed to fetch backups", type: "error" });
+    }
+  }, []);
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await api.get("/admin/settings");
+      setSettings(res.data || {});
+    } catch (err) {
+      setMessage({ text: "Failed to fetch settings", type: "error" });
+    }
+  }, []);
+
+  const fetchAllData = useCallback(async () => {
     try {
       await Promise.all([
         fetchUsers(),
@@ -47,70 +106,11 @@ function AdminDashboard() {
     } catch (err) {
       console.error("Error fetching data:", err);
     }
-  };
+  }, [fetchUsers, fetchProjects, fetchBugs, fetchTestcases, fetchAuditLogs, fetchBackups, fetchSettings]);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await api.get("/admin/users");
-      setUsers(res.data);
-    } catch (err) {
-      setMessage({ text: "Failed to fetch users", type: "error" });
-    }
-  };
-
-  const fetchProjects = async () => {
-    try {
-      const res = await api.get("/admin/projects");
-      setProjects(res.data);
-    } catch (err) {
-      console.log("Failed to load projects");
-    }
-  };
-
-  const fetchBugs = async () => {
-    try {
-      const res = await api.get("/bugs");
-      setBugs(res.data || []);
-    } catch (err) {
-      console.log("Failed to load bugs");
-    }
-  };
-
-  const fetchTestcases = async () => {
-    try {
-      const res = await api.get("/testcase");
-      setTestcases(res.data || []);
-    } catch (err) {
-      console.log("Failed to load testcases");
-    }
-  };
-
-  const fetchAuditLogs = async () => {
-    try {
-      const res = await api.get("/admin/audit-logs?limit=20");
-      setAuditLogs(res.data);
-    } catch (err) {
-      console.log("Failed to load audit logs");
-    }
-  };
-
-  const fetchBackups = async () => {
-    try {
-      const res = await api.get("/admin/backups");
-      setBackups(res.data);
-    } catch (err) {
-      console.log("Failed to load backups");
-    }
-  };
-
-  const fetchSettings = async () => {
-    try {
-      const res = await api.get("/admin/settings");
-      setSettings(res.data);
-    } catch (err) {
-      console.log("Failed to load settings");
-    }
-  };
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const validatePassword = (pwd) => {
     const errors = [];

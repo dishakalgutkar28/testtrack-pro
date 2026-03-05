@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
@@ -14,23 +14,7 @@ function AdminBugManagement() {
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
-    try {
-      await Promise.all([
-        fetchBugs(),
-        fetchDevelopers(),
-        fetchProjects()
-      ]);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
-  };
-
-  const fetchBugs = async () => {
+  const fetchBugs = useCallback(async () => {
     try {
       const res = await api.get("/bugs");
       setBugs(res.data || []);
@@ -40,25 +24,41 @@ function AdminBugManagement() {
       setMessage({ text: "Failed to load bugs", type: "error" });
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchDevelopers = async () => {
+  const fetchDevelopers = useCallback(async () => {
     try {
       const res = await api.get("/developers");
       setDevelopers(res.data || []);
     } catch (err) {
       console.log("Failed to load developers");
     }
-  };
+  }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await api.get("/projects");
       setProjects(res.data?.projects || []);
     } catch (err) {
       console.log("Failed to load projects");
     }
-  };
+  }, []);
+
+  const fetchAllData = useCallback(async () => {
+    try {
+      await Promise.all([
+        fetchBugs(),
+        fetchDevelopers(),
+        fetchProjects()
+      ]);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    }
+  }, [fetchBugs, fetchDevelopers, fetchProjects]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const deleteBug = async (bugId) => {
     if (!window.confirm("Are you sure you want to delete this bug? This cannot be undone.")) return;
