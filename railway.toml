@@ -1,3 +1,4 @@
+# Railway Configuration for Backend Deployment
 [build]
 builder = "NIXPACKS"
 buildCommand = "cd backend && npm install --no-audit --no-fund"
