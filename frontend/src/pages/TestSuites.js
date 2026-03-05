@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -30,50 +30,48 @@ const TestSuites = () => {
   const userRole = (localStorage.getItem('role') || '').toLowerCase();
   const canEdit = userRole === 'admin' || userRole === 'tester';
 
+  const fetchProjects = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/projects`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects(response.data.projects || []);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError('Failed to fetch projects');
+    }
+  }, [token]);
+
+  const fetchTestSuites = useCallback(async (projectId = '') => {
+    setLoading(true);
+    try {
+      const url = projectId 
+        ? `${API_BASE_URL}/test-suites?project_id=${projectId}`
+        : `${API_BASE_URL}/test-suites`;
+      
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setSuites(response.data.suites || []);
+      setError('');
+    } catch (err) {
+      console.error('Error fetching test suites:', err);
+      setError('Failed to fetch test suites');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!token) {
       navigate('/login');
       return;
     }
 
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/projects`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProjects(response.data.projects || []);
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to fetch projects');
-      }
-    };
-
-    const fetchTestSuites = async (projectId = '') => {
-      setLoading(true);
-      try {
-        const url = projectId 
-          ? `${API_BASE_URL}/test-suites?project_id=${projectId}`
-          : `${API_BASE_URL}/test-suites`;
-        
-        const response = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        setSuites(response.data.suites || []);
-        setError('');
-      } catch (err) {
-        console.error('Error fetching test suites:', err);
-        setError('Failed to fetch test suites');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProjects();
     fetchTestSuites();
-  }, [token, navigate]);
-
-  // Removed old function definitions - moved inside useEffect above
+  }, [token, navigate, fetchProjects, fetchTestSuites]);
 
   const handleProjectFilter = (e) => {
     const projectId = e.target.value;
