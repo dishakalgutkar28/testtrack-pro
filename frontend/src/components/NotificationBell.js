@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './NotificationBell.css';
@@ -14,16 +14,7 @@ const NotificationBell = () => {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    if (token) {
-      fetchUnreadCount();
-      // Poll for new notifications every 30 seconds
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [token]);
-
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/notifications/unread-count`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -32,7 +23,16 @@ const NotificationBell = () => {
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchUnreadCount();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token, fetchUnreadCount]);
 
   const fetchNotifications = async () => {
     setLoading(true);

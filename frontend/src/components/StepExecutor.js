@@ -12,6 +12,7 @@ function StepExecutor({ testcaseId, onExecutionComplete }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isExecuting, setIsExecuting] = useState(false);
   const [stepNotes, setStepNotes] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [executionOverallStatus, setExecutionOverallStatus] = useState('pending');
 
   // Start execution run

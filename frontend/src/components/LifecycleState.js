@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import "./LifecycleState.css";
 
@@ -12,12 +12,7 @@ function LifecycleState({ testcaseId, onStateChange }) {
   const [error, setError] = useState("");
   const [newState, setNewState] = useState("");
 
-  useEffect(() => {
-    fetchLifecycleState();
-    fetchHistory();
-  }, [testcaseId]);
-
-  const fetchLifecycleState = async () => {
+  const fetchLifecycleState = useCallback(async () => {
     try {
       const res = await api.get(`/testcase/${testcaseId}/lifecycle`);
       setCurrentState(res.data.lifecycle_state);
@@ -25,16 +20,21 @@ function LifecycleState({ testcaseId, onStateChange }) {
     } catch (err) {
       setError(err.response?.data?.error || "Failed to fetch lifecycle state");
     }
-  };
+  }, [testcaseId]);
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       const res = await api.get(`/testcase/${testcaseId}/lifecycle-history`);
       setHistory(res.data);
     } catch (err) {
       console.error("Failed to fetch history:", err);
     }
-  };
+  }, [testcaseId]);
+
+  useEffect(() => {
+    fetchLifecycleState();
+    fetchHistory();
+  }, [fetchLifecycleState, fetchHistory]);
 
   const validateTransition = async (state) => {
     try {

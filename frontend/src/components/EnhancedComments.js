@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import "./EnhancedComments.css";
 
@@ -12,18 +12,13 @@ function EnhancedComments({ bugId, testcaseId }) {
   const [editText, setEditText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedReaction, setSelectedReaction] = useState(null);
   const [showReactions, setShowReactions] = useState({});
   const [expandedThreads, setExpandedThreads] = useState({});
   const currentUserEmail = localStorage.getItem("email");
 
   const reactionOptions = ["👍", "❤️", "😂", "🎉", "🚀", "✨"];
 
-  useEffect(() => {
-    fetchComments();
-  }, [bugId, testcaseId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const endpoint = bugId 
         ? `/bugs/${bugId}/comments`
@@ -39,7 +34,11 @@ function EnhancedComments({ bugId, testcaseId }) {
     } catch (err) {
       console.error("Failed to fetch comments:", err);
     }
-  };
+  }, [bugId, testcaseId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const fetchThread = async (commentId) => {
     try {
@@ -148,6 +147,7 @@ function EnhancedComments({ bugId, testcaseId }) {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const removeReaction = async (commentId, reaction) => {
     try {
       await api.delete(`/comments/${commentId}/reactions/${encodeURIComponent(reaction)}`);
