@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Notifications.css';
@@ -14,7 +14,7 @@ const Notifications = () => {
 
   const token = localStorage.getItem('token');
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const url = filter === 'unread'
@@ -33,7 +33,7 @@ const Notifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, token]);
 
   useEffect(() => {
     if (!token) {
@@ -41,7 +41,7 @@ const Notifications = () => {
       return;
     }
     fetchNotifications();
-  }, [token, navigate, filter]);
+  }, [token, navigate, filter, fetchNotifications]);
 
   const handleMarkAsRead = async (notificationId) => {
     try {

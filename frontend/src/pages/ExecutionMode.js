@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ExecutionMode.css';
@@ -20,7 +20,7 @@ const ExecutionMode = () => {
 
   const token = localStorage.getItem('token');
 
-  const fetchExecutionData = async () => {
+  const fetchExecutionData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -36,7 +36,7 @@ const ExecutionMode = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [suiteId, executionId, token]);
 
   useEffect(() => {
     if (!token) {
@@ -44,7 +44,7 @@ const ExecutionMode = () => {
       return;
     }
     fetchExecutionData();
-  }, [token, suiteId, executionId, navigate]);
+  }, [token, suiteId, executionId, navigate, fetchExecutionData]);
 
   const getCurrentTestcase = () => testcases[currentTestcaseIndex];
   const getCurrentStep = () => {

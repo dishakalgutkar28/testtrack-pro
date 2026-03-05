@@ -14,7 +14,6 @@ function DeveloperBug() {
   const [searchTerm, setSearchTerm] = useState("");
   const [message, setMessage] = useState({ text: "", type: "" });
   const [expandedBugId, setExpandedBugId] = useState(null);
-  const [fixNotes, setFixNotes] = useState({});
   const [editingFixNotes, setEditingFixNotes] = useState({});
   const [showRetestModal, setShowRetestModal] = useState(null);
   const [retestNotes, setRetestNotes] = useState("");

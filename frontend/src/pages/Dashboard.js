@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +18,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { theme } = useTheme();
 
-  useEffect(() => {
-    const userRole = localStorage.getItem("role") || "tester";
-    setRole(userRole);
-    fetchDashboardData();
-  }, [navigate]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     // Verify user is authenticated before making API calls
     const token = localStorage.getItem("token");
     if (!token) {
@@ -65,7 +59,13 @@ function Dashboard() {
       setError("Failed to load dashboard data");
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const userRole = localStorage.getItem("role") || "tester";
+    setRole(userRole);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
