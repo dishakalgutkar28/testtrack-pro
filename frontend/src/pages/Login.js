@@ -163,25 +163,35 @@ function Login() {
         </form>
 
         <p className="forgot-password-link">
-          <a onClick={() => navigate("/forgot-password")}>
+          <button 
+            onClick={() => navigate("/forgot-password")}
+            className="link-button"
+          >
             Forgot your password?
-          </a>
+          </button>
         </p>
 
         {unverifiedEmail && (
           <p className="resend-link">
             Didn&apos;t get verification email?{" "}
-            <a onClick={handleResendVerification}>
+            <button 
+              onClick={handleResendVerification}
+              className="link-button"
+              disabled={resendLoading}
+            >
               {resendLoading ? "Sending..." : "Resend now"}
-            </a>
+            </button>
           </p>
         )}
 
         <p className="register-link">
           Don't have an account?{" "}
-          <a onClick={() => navigate("/register")}>
+          <button 
+            onClick={() => navigate("/register")}
+            className="link-button"
+          >
             Register here
-          </a>
+          </button>
         </p>
       </div>
     </div>

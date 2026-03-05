@@ -151,17 +151,28 @@ html, body, #root {
 
 .forgot-password-link a,
 .register-link a,
-.resend-link a {
+.resend-link a,
+.link-button {
   color: white;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
 }
 
 .forgot-password-link a:hover,
 .register-link a:hover,
-.resend-link a:hover {
+.resend-link a:hover,
+.link-button:hover {
   text-decoration: underline;
+}
+
+.link-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ===== ERROR MESSAGE ===== */

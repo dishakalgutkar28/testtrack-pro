@@ -26,7 +26,7 @@ const ExecutionMode = () => {
       return;
     }
     fetchExecutionData();
-  }, [token, suiteId, executionId]);
+  }, [token, suiteId, executionId, navigate, fetchExecutionData]);
 
   const fetchExecutionData = async () => {
     setLoading(true);

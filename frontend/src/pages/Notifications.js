@@ -20,7 +20,7 @@ const Notifications = () => {
       return;
     }
     fetchNotifications();
-  }, [token, navigate, filter]);
+  }, [token, navigate, filter, fetchNotifications]);
 
   const fetchNotifications = async () => {
     setLoading(true);

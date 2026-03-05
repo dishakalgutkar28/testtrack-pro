@@ -52,7 +52,7 @@ function ExecutionHistory() {
     if (!testcaseExists) return false; // Skip if testcase is deleted
 
     const matchesStatus = filterStatus === "all" || exec.status === filterStatus;
-    const matchesProject = filterProject === "all" || exec.project_id == filterProject;
+    const matchesProject = filterProject === "all" || exec.project_id === filterProject;
     return matchesStatus && matchesProject;
   }).sort((a, b) => {
     // Sort by date in ascending order (oldest first)
