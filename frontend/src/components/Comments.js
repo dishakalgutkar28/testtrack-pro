@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import "./Comments.css";
 
@@ -11,11 +11,7 @@ function Comments({ bugId, testcaseId }) {
   const [error, setError] = useState("");
   const currentUserEmail = localStorage.getItem("email");
 
-  useEffect(() => {
-    fetchComments();
-  }, [bugId, testcaseId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const endpoint = bugId 
         ? `/bugs/${bugId}/comments`
@@ -25,7 +21,11 @@ function Comments({ bugId, testcaseId }) {
     } catch (err) {
       console.error("Failed to fetch comments:", err);
     }
-  };
+  }, [bugId, testcaseId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const addComment = async () => {
     if (!newComment.trim()) {

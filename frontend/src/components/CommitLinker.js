@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import api from "../services/api";
 import "./CommitLinker.css";
 
@@ -13,11 +13,7 @@ function CommitLinker({ testcaseId, onCommitLinked }) {
   const [error, setError] = useState("");
   const [fetchLoading, setFetchLoading] = useState(false);
 
-  useEffect(() => {
-    fetchCommits();
-  }, [testcaseId]);
-
-  const fetchCommits = async () => {
+  const fetchCommits = useCallback(async () => {
     setFetchLoading(true);
     try {
       const res = await api.get(`/testcase/${testcaseId}/commits`);
@@ -27,7 +23,11 @@ function CommitLinker({ testcaseId, onCommitLinked }) {
     } finally {
       setFetchLoading(false);
     }
-  };
+  }, [testcaseId]);
+
+  useEffect(() => {
+    fetchCommits();
+  }, [fetchCommits]);
 
   const linkCommit = async () => {
     if (!commitSha.trim()) {

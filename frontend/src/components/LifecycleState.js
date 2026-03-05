@@ -12,6 +12,17 @@ function LifecycleState({ testcaseId, onStateChange }) {
   const [error, setError] = useState("");
   const [newState, setNewState] = useState("");
 
+  const validateTransition = useCallback(async (state) => {
+    try {
+      const res = await api.post(`/testcase/${testcaseId}/lifecycle-validate`, {
+        proposedState: state
+      });
+      setAvailableStates(res.data.availableStates);
+    } catch (err) {
+      console.error("Failed to validate transition:", err);
+    }
+  }, [testcaseId]);
+
   const fetchLifecycleState = useCallback(async () => {
     try {
       const res = await api.get(`/testcase/${testcaseId}/lifecycle`);
@@ -20,7 +31,7 @@ function LifecycleState({ testcaseId, onStateChange }) {
     } catch (err) {
       setError(err.response?.data?.error || "Failed to fetch lifecycle state");
     }
-  }, [testcaseId]);
+  }, [testcaseId, validateTransition]);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -35,17 +46,6 @@ function LifecycleState({ testcaseId, onStateChange }) {
     fetchLifecycleState();
     fetchHistory();
   }, [fetchLifecycleState, fetchHistory]);
-
-  const validateTransition = async (state) => {
-    try {
-      const res = await api.post(`/testcase/${testcaseId}/lifecycle-validate`, {
-        proposedState: state
-      });
-      setAvailableStates(res.data.availableStates);
-    } catch (err) {
-      console.error("Failed to validate transition:", err);
-    }
-  };
 
   const changeState = async () => {
     if (!newState || !changeReason) {

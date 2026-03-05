@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import "./Attachments.css";
 
@@ -9,12 +9,7 @@ function Attachments({ entityType, entityId }) {
   const [error, setError] = useState("");
   const [file, setFile] = useState(null);
 
-  useEffect(() => {
-    if (!entityType || !entityId) return;
-    fetchAttachments();
-  }, [entityType, entityId]);
-
-  const fetchAttachments = async () => {
+  const fetchAttachments = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -26,7 +21,12 @@ function Attachments({ entityType, entityId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [entityType, entityId]);
+
+  useEffect(() => {
+    if (!entityType || !entityId) return;
+    fetchAttachments();
+  }, [entityType, entityId, fetchAttachments]);
 
   const handleUpload = async () => {
     if (!file) return;
