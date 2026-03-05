@@ -2,9 +2,9 @@
 # Force redeploy with updated environment variables
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && npm install --no-audit --no-fund"
+buildCommand = "cd backend && npm install --no-audit --no-fund && chmod +x railway-start.sh"
 
 [deploy]
-startCommand = "cd backend && node server.js"
+startCommand = "bash backend/railway-start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
