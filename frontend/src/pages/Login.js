@@ -61,7 +61,6 @@ function Login() {
         toast.error(res.data.message || "Login failed");
       }
     } catch (err) {
-      console.error(err);
       const errorData = err.response?.data;
       
       if (errorData?.requiresVerification) {
@@ -69,10 +68,12 @@ function Login() {
         toast.warning("Please verify your email before logging in. Check your inbox for the verification link.");
       } else {
         setUnverifiedEmail("");
-        // Error toast is already shown by API interceptor
-        // Only show message if not already handled
-        if (!err.response) {
+        if (err.response?.status === 401) {
+          toast.error(errorData?.message || "Invalid email or password.");
+        } else if (!err.response) {
           toast.error("Network error. Please check your connection.");
+        } else {
+          toast.error(errorData?.message || "Login failed. Please try again.");
         }
       }
     }
