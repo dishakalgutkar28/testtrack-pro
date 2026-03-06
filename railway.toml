@@ -1,10 +1,10 @@
 # Railway Configuration for Backend Deployment
-# Force redeploy with updated environment variables
+# Root Directory is set to /backend in Railway settings
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && npm install --no-audit --no-fund && chmod +x railway-start.sh"
+buildCommand = "npm install --no-audit --no-fund && chmod +x railway-start.sh"
 
 [deploy]
-startCommand = "bash backend/railway-start.sh"
+startCommand = "bash railway-start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5

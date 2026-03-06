@@ -3,7 +3,7 @@
 
 echo "Creating .env file from Railway environment..."
 
-cat > /app/backend/.env << EOF
+cat > .env << EOF
 NODE_ENV=${NODE_ENV:-production}
 PORT=${PORT:-3000}
 DB_HOST=${DB_HOST}
@@ -17,8 +17,8 @@ CORS_ORIGIN=${CORS_ORIGIN:-*}
 EOF
 
 echo ".env file created successfully"
-cat /app/backend/.env | sed 's/PASSWORD=.*/PASSWORD=****/g' | sed 's/SECRET=.*/SECRET=****/g'
+cat .env | sed 's/PASSWORD=.*/PASSWORD=****/g' | sed 's/SECRET=.*/SECRET=****/g'
 
 # Start the server
 echo "Starting server..."
-exec node /app/backend/server.js
+exec node server.js
