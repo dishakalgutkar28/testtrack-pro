@@ -164,6 +164,27 @@ router.post("/register", async (req, res) => {
         async (insertErr, insertResult) => {
           if (insertErr) {
             console.log("Registration error:", insertErr);
+
+            // Backward compatibility: older DB may not have email verification columns yet.
+            if (insertErr.code === "ER_BAD_FIELD_ERROR") {
+              db.query(
+                "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
+                [email, hashed, "tester"],
+                (legacyInsertErr) => {
+                  if (legacyInsertErr) {
+                    console.log("Legacy registration error:", legacyInsertErr);
+                    return res.status(500).json({ message: "Registration failed" });
+                  }
+
+                  return res.json({
+                    success: true,
+                    message: "Registration successful! Your account is active.",
+                  });
+                }
+              );
+              return;
+            }
+
             return res.status(500).json({ message: "Registration failed" });
           }
 
@@ -185,6 +206,15 @@ router.post("/register", async (req, res) => {
                 (autoVerifyErr) => {
                   if (autoVerifyErr) {
                     console.log("Auto-verify fallback error:", autoVerifyErr);
+
+                    // If verification columns are not present, account still exists and is usable.
+                    if (autoVerifyErr.code === "ER_BAD_FIELD_ERROR") {
+                      return res.json({
+                        success: true,
+                        message: "Registration successful! Your account is active.",
+                      });
+                    }
+
                     return res.status(500).json({
                       success: false,
                       message: "Registration created but activation failed. Please contact support.",
