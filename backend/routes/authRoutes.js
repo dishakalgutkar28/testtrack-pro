@@ -173,7 +173,10 @@ router.post("/register", async (req, res) => {
                 (legacyInsertErr) => {
                   if (legacyInsertErr) {
                     console.log("Legacy registration error:", legacyInsertErr);
-                    return res.status(500).json({ message: "Registration failed" });
+                    return res.status(500).json({
+                      message: "Registration failed",
+                      code: legacyInsertErr.code || "LEGACY_INSERT_ERROR"
+                    });
                   }
 
                   return res.json({
@@ -185,7 +188,10 @@ router.post("/register", async (req, res) => {
               return;
             }
 
-            return res.status(500).json({ message: "Registration failed" });
+            return res.status(500).json({
+              message: "Registration failed",
+              code: insertErr.code || "REGISTER_INSERT_ERROR"
+            });
           }
 
           // Send verification email
