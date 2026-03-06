@@ -1,10 +1,10 @@
 # Railway Configuration for Backend Deployment
-# Root Directory is set to /backend in Railway settings
+# Root Directory is set to / (repo root) in Railway settings
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --legacy-peer-deps --no-audit --no-fund --ignore-scripts"
+buildCommand = "cd backend && npm install --legacy-peer-deps --no-audit --no-fund --ignore-scripts"
 
 [deploy]
-startCommand = "bash railway-start.sh"
+startCommand = "bash backend/railway-start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5

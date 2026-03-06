@@ -3,6 +3,8 @@
 
 echo "Creating .env file from Railway environment..."
 
+cd backend
+
 cat > .env << EOF
 NODE_ENV=${NODE_ENV:-production}
 PORT=${PORT:-3000}
