@@ -2,7 +2,7 @@
 # Root Directory is set to /backend in Railway settings
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --no-audit --no-fund && chmod +x railway-start.sh"
+buildCommand = "bash build.sh"
 
 [deploy]
 startCommand = "bash railway-start.sh"
