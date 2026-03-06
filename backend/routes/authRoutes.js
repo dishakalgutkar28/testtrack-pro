@@ -176,7 +176,31 @@ router.post("/register", async (req, res) => {
             });
           } catch (emailErr) {
             console.log("Email sending error:", emailErr);
-            // Roll back user creation so user can retry registration cleanly
+            // In production, don't block registration if email provider is temporarily unavailable.
+            // Auto-verify this user so they can log in immediately.
+            if (process.env.NODE_ENV === "production") {
+              db.query(
+                "UPDATE users SET email_verified=TRUE, email_verification_token=NULL WHERE id=?",
+                [insertResult.insertId],
+                (autoVerifyErr) => {
+                  if (autoVerifyErr) {
+                    console.log("Auto-verify fallback error:", autoVerifyErr);
+                    return res.status(500).json({
+                      success: false,
+                      message: "Registration created but activation failed. Please contact support.",
+                    });
+                  }
+
+                  return res.json({
+                    success: true,
+                    message: "Registration successful. Email service is unavailable, so your account has been activated automatically.",
+                  });
+                }
+              );
+              return;
+            }
+
+            // In development, keep previous behavior so email setup issues stay visible.
             db.query("DELETE FROM users WHERE id=?", [insertResult.insertId], (rollbackErr) => {
               if (rollbackErr) {
                 console.log("Rollback error after email failure:", rollbackErr);
