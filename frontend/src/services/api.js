@@ -42,6 +42,15 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized errors
     if (error.response?.status === 401 && !originalRequest._retry) {
       
+      // Skip token refresh for auth endpoints (login, register, etc.)
+      const authEndpoints = ['/login', '/register', '/refresh-token', '/verify-email', '/reset-password', '/resend-verification'];
+      const isAuthEndpoint = authEndpoints.some(endpoint => originalRequest.url?.includes(endpoint));
+      
+      if (isAuthEndpoint) {
+        // Let the auth endpoint handle its own errors
+        return Promise.reject(error);
+      }
+      
       originalRequest._retry = true;
 
       try {
