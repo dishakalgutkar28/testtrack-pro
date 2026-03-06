@@ -67,7 +67,7 @@ function AdminDashboard() {
 
   const fetchAuditLogs = useCallback(async () => {
     try {
-      const res = await api.get("/audit-logs");
+      const res = await api.get("/admin/audit-logs");
       setAuditLogs(res.data || []);
     } catch (err) {
       setMessage({ text: "Failed to fetch audit logs", type: "error" });
