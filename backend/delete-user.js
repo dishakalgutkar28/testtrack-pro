@@ -5,7 +5,7 @@
 require('dotenv').config();
 const db = require('./config/db');
 
-const emailToDelete = 'prateekgaonkar55@gmail.com';
+const emailToDelete = 'prateekgoankar@gmail.com';
 
 console.log(`\n🗑️  Deleting user: ${emailToDelete}\n`);
 

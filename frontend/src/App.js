@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import LandingPage from "./pages/LandingPage";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -40,17 +41,12 @@ function AppRoutes() {
     setToastHandler(toast);
   }, [toast]);
 
-  // Root redirect component
-  const RootRedirect = () => {
-    const token = localStorage.getItem("token");
-    return <Navigate to={token ? "/dashboard" : "/login"} replace />;
-  };
-
   return (
     <Router>
       <Routes>
 
         {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -227,8 +223,8 @@ function AppRoutes() {
           }
         />
 
-        {/* Default redirect */}
-        <Route path="/" element={<RootRedirect />} />
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </Router>

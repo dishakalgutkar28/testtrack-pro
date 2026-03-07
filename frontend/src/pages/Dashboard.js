@@ -7,6 +7,7 @@ import "./Dashboard.css";
 
 function Dashboard() {
   const [role, setRole] = useState("");
+  const [displayName, setDisplayName] = useState("Tester");
   const [data, setData] = useState({
     testcases: 0,
     bugs: 0,
@@ -64,6 +65,19 @@ function Dashboard() {
   useEffect(() => {
     const userRole = localStorage.getItem("role") || "tester";
     setRole(userRole);
+
+    const userJson = localStorage.getItem("user");
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        if (user?.name && String(user.name).trim()) {
+          setDisplayName(String(user.name).trim());
+        }
+      } catch {
+        // Keep default display name if user JSON is malformed.
+      }
+    }
+
     fetchDashboardData();
   }, [fetchDashboardData]);
 
@@ -87,7 +101,7 @@ function Dashboard() {
         {role === "tester" && (
           <>
             <div className="dashboard-header">
-              <h1>Tester Dashboard</h1>
+              <h1>Welcome, {displayName}</h1>
               <p className="dashboard-subtitle">
                 Create test cases and report bugs to improve software quality
               </p>

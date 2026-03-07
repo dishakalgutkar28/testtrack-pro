@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
 function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -48,7 +49,7 @@ function Register() {
     setError("");
     setSuccess("");
     
-    if (!email || !password || !confirmPassword) {
+    if (!name.trim() || !email || !password || !confirmPassword) {
       setError("Please fill in all fields");
       return;
     }
@@ -66,10 +67,11 @@ function Register() {
 
     setLoading(true);
     // Only register as tester - no role selection on frontend
-    api.post("/register", { email, password, role: "tester" })
+    api.post("/register", { name: name.trim(), email, password, role: "tester" })
       .then((res) => {
         setSuccess(res.data.message || "Registration successful! Please check your email to verify your account.");
         setLastRegisteredEmail(email);
+        setName("");
         setEmail("");
         setPassword("");
         setConfirmPassword("");
@@ -118,6 +120,16 @@ function Register() {
         
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
+
+        <div className="form-group">
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+        </div>
         
         <div className="form-group">
           <input 
@@ -170,7 +182,7 @@ function Register() {
         <button 
           className="register-btn" 
           onClick={register}
-          disabled={loading || passwordErrors.length > 0 || password !== confirmPassword || !confirmPassword}
+          disabled={loading || passwordErrors.length > 0 || password !== confirmPassword || !confirmPassword || !name.trim()}
         >
           {loading ? "Registering..." : "Register as Tester"}
         </button>
@@ -185,17 +197,6 @@ function Register() {
         </button>
 
         <p className="note">For Developer or Admin roles, please contact your administrator.</p>
-
-        <div className="password-criteria">
-          <p className="criteria-title">Password Criteria:</p>
-          <ul className="criteria-list">
-            <li>At least 8 characters</li>
-            <li>One uppercase letter (A-Z)</li>
-            <li>One lowercase letter (a-z)</li>
-            <li>One number (0-9)</li>
-            <li>One special character (!@#$%^&* etc)</li>
-          </ul>
-        </div>
         
         <p className="login-link">
           Already have an account? <button onClick={() => navigate("/login")} className="link-button">Login here</button>

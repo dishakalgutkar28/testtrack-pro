@@ -41,7 +41,8 @@ function Login() {
         // Store user info
         localStorage.setItem("user", JSON.stringify({
           email: res.data.email || values.email,
-          role
+          role,
+          name: res.data.name || "Tester"
         }));
 
         // Show success message
@@ -121,6 +122,15 @@ function Login() {
         backgroundAttachment: 'fixed'
       }}
     >
+      <div className="login-branding">
+        <h1 className="brand-title">TestTrack</h1>
+        <p className="brand-tagline">
+          <span className="brand-tagline-text">
+            Plan tests, track bugs, and ship quality software with confidence.
+          </span>
+        </p>
+      </div>
+
       <div className="login-card">
         <h2>Login</h2>
 

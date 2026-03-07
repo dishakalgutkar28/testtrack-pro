@@ -66,19 +66,13 @@ router.post("/login", (req, res) => {
 
       const user = results[0];
 
-      // Check if email is verified 
-      // Skip verification for:
-      // 1. Admin/Developer accounts
-      // 2. Existing users (email_verified is NULL - column didn't exist before)
-      // 3. Already verified users
-      const needsVerification = user.email_verified === false && 
-                               user.email_verification_token !== null &&
-                               user.role !== 'admin' && 
-                               user.role !== 'developer';
+      // MySQL BOOLEAN/TINYINT can come as true/1/'1', so normalize the value.
+      const isVerified = user.email_verified === true || user.email_verified === 1 || user.email_verified === '1';
+      const isAdminOrDev = user.role === 'admin' || user.role === 'developer';
       
-      if (needsVerification) {
+      if (!isVerified && !isAdminOrDev) {
         return res.status(403).json({ 
-          message: "Please verify your email before logging in",
+          message: "Please verify your email before logging in. Check your inbox for the verification link.",
           requiresVerification: true 
         });
       }
@@ -93,6 +87,10 @@ router.post("/login", (req, res) => {
 
         // Generate access and refresh tokens
         const { accessToken, refreshToken } = generateTokens(user);
+
+        // Build a UI-friendly display name with fallback for older rows.
+        const fallbackName = user.email ? user.email.split("@")[0].replace(/[._-]+/g, " ").trim() : "Tester";
+        const displayName = user.name && String(user.name).trim() ? String(user.name).trim() : fallbackName;
 
         // Store refresh token in database
         db.query(
@@ -111,6 +109,7 @@ router.post("/login", (req, res) => {
           refreshToken,
           role: user.role,
           email: user.email,
+          name: displayName,
         });
       } catch (e) {
         console.log("Login error:", e);
@@ -126,10 +125,10 @@ router.post("/login", (req, res) => {
 =========================== */
 
 router.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ message: "Email & password required" });
+  if (!name || !String(name).trim() || !email || !password) {
+    return res.status(400).json({ message: "Name, email & password required" });
   }
 
   // Validate email format
@@ -157,10 +156,11 @@ router.post("/register", async (req, res) => {
 
       const hashed = await bcrypt.hash(password, 10);
       const verificationToken = crypto.randomBytes(32).toString('hex');
+      const trimmedName = String(name).trim();
 
       db.query(
-        "INSERT INTO users (email, password, role, email_verified, email_verification_token) VALUES (?, ?, ?, ?, ?)",
-        [email, hashed, "tester", false, verificationToken],
+        "INSERT INTO users (name, email, password, role, email_verified, email_verification_token) VALUES (?, ?, ?, ?, ?, ?)",
+        [trimmedName, email, hashed, "tester", false, verificationToken],
         async (insertErr, insertResult) => {
           if (insertErr) {
             console.log("Registration error:", insertErr);

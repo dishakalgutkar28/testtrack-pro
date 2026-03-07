@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Urbanist:wght@300;400;500;600;700;800&display=swap');
+
 /* ===== GLOBAL RESET ===== */
 html, body, #root {
   margin: 0;
@@ -6,7 +8,7 @@ html, body, #root {
   width: 100%;
   overflow-x: hidden;
   background: none;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Urbanist', 'Trebuchet MS', 'Segoe UI', sans-serif;
 }
 
 /* ===== REGISTER CONTAINER ===== */
@@ -30,7 +32,10 @@ html, body, #root {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(80, 224, 173, 0.28), transparent 38%),
+    radial-gradient(circle at 84% 82%, rgba(255, 119, 78, 0.26), transparent 40%),
+    linear-gradient(136deg, rgba(12, 26, 18, 0.73), rgba(16, 36, 28, 0.72) 48%, rgba(22, 40, 33, 0.70) 100%);
   z-index: 1;
 }
 
@@ -42,15 +47,15 @@ html, body, #root {
   width: 100%;
   max-width: 480px;
 
-  background: rgba(255,255,255,0.08);
+  background: linear-gradient(154deg, rgba(18, 43, 35, 0.74), rgba(20, 48, 39, 0.64));
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
 
   border-radius: 20px;
   padding: 50px 40px;
 
-  border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(184, 245, 216, 0.32);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.48);
 
   box-sizing: border-box;
 }
@@ -59,16 +64,20 @@ html, body, #root {
 .register-card h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: white;
-  font-size: 30px;
+  color: #effff7;
+  font-size: 33px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: 'Cinzel', 'Times New Roman', serif;
 }
 
 /* ===== ACCOUNT NOTE ===== */
 .account-type-note {
   text-align: center;
-  color: rgba(255,255,255,0.9);
-  font-size: 14px;
+  color: rgba(227, 255, 242, 0.9);
+  font-size: 15px;
+  letter-spacing: 0.02em;
   margin-bottom: 28px;
 }
 
@@ -90,12 +99,12 @@ html, body, #root {
   width: 100%;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(180, 243, 214, 0.35);
 
-  background: rgba(255,255,255,0.12);
+  background: rgba(185, 244, 214, 0.10);
   backdrop-filter: blur(10px);
 
-  color: white;
+  color: #f0fff7;
   font-size: 15px;
   outline: none;
   box-sizing: border-box;
@@ -104,33 +113,33 @@ html, body, #root {
 }
 
 .input-field::placeholder {
-  color: rgba(255,255,255,0.7);
+  color: rgba(229, 255, 243, 0.78);
 }
 
 .input-field:hover {
-  background: rgba(255,255,255,0.18);
+  background: rgba(185, 244, 214, 0.18);
 }
 
 .input-field:focus {
-  border-color: #6B7FFF;
-  box-shadow: 0 0 0 3px rgba(107,127,255,0.25);
+  border-color: #ffd18d;
+  box-shadow: 0 0 0 3px rgba(255, 209, 141, 0.25);
 }
 
 /* ===== PASSWORD REQUIREMENTS ===== */
 .password-requirements {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(216, 255, 235, 0.10);
+  border: 1px solid rgba(177, 241, 210, 0.26);
   padding: 16px;
   border-radius: 12px;
   margin-top: 12px;
   font-size: 13px;
-  color: white;
+  color: #f3fff9;
 }
 
 /* ===== PASSWORD CRITERIA ===== */
 .password-criteria {
-  background: rgba(107,127,255,0.15);
-  border: 1px solid rgba(107,127,255,0.3);
+  background: rgba(255, 211, 146, 0.16);
+  border: 1px solid rgba(255, 210, 141, 0.36);
   padding: 14px 16px;
   border-radius: 12px;
   margin-bottom: 14px;
@@ -138,7 +147,7 @@ html, body, #root {
 }
 
 .criteria-title {
-  color: #a5b4fc;
+  color: #ffe3bd;
   font-weight: 600;
   margin: 0 0 8px 0;
 }
@@ -147,7 +156,7 @@ html, body, #root {
   list-style: none;
   padding: 0;
   margin: 0;
-  color: rgba(255,255,255,0.85);
+  color: rgba(241, 255, 247, 0.9);
 }
 
 .criteria-list li {
@@ -160,7 +169,7 @@ html, body, #root {
   content: "•";
   position: absolute;
   left: 0;
-  color: #a5b4fc;
+  color: #ffd79e;
 }
 
 /* ===== ERROR / SUCCESS MESSAGES ===== */
@@ -190,35 +199,37 @@ html, body, #root {
   border-radius: 12px;
   border: none;
 
-  background: linear-gradient(135deg, #4C63FF, #6B7FFF);
+  background: linear-gradient(120deg, #2fbf84, #45bfa3 45%, #ff9f55);
   color: white;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
 
   transition: all 0.3s ease;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .register-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(76,99,255,0.4);
+  box-shadow: 0 10px 26px rgba(47, 191, 132, 0.36);
 }
 
 .resend-btn {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(182, 245, 217, 0.33);
   margin-top: 12px;
-  background: rgba(255,255,255,0.1);
-  color: white;
+  background: rgba(185, 244, 214, 0.12);
+  color: #f4fff8;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .resend-btn:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(185, 244, 214, 0.20);
 }
 
 .resend-btn:disabled {
@@ -229,7 +240,7 @@ html, body, #root {
 /* ===== NOTE TEXT ===== */
 .note {
   text-align: center;
-  color: rgba(255,255,255,0.8);
+  color: rgba(232, 255, 243, 0.86);
   font-size: 13px;
   margin: 20px 0;
 }
@@ -237,13 +248,13 @@ html, body, #root {
 /* ===== LOGIN LINK ===== */
 .login-link {
   text-align: center;
-  color: white;
+  color: #f6fff9;
   font-size: 14px;
   margin-top: 20px;
 }
 
 .login-link a {
-  color: #ffffff;
+  color: #ffe7bd;
   font-weight: 600;
   text-decoration: none;
 }
