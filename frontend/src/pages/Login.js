@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import useFormValidation from "../hooks/useFormValidation";
 import { loginSchema } from "../validators/schemas";
@@ -10,6 +10,7 @@ import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
@@ -17,10 +18,11 @@ function Login() {
   // Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const forceLogin = new URLSearchParams(location.search).get("force") === "true";
+    if (token && !forceLogin) {
       navigate("/dashboard", { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location.search]);
 
   const handleLogin = async (values) => {
     try {

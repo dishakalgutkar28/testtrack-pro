@@ -3,6 +3,9 @@ import "./LandingPage.css";
 
 function LandingPage() {
   const navigate = useNavigate();
+  const handleLoginClick = () => {
+    navigate('/login?force=true');
+  };
 
   return (
     <div className="landing-page">
@@ -14,7 +17,7 @@ function LandingPage() {
           <button
             type="button"
             className="topbar-btn topbar-btn-secondary"
-            onClick={() => navigate("/login")}
+            onClick={handleLoginClick}
           >
             Login
           </button>

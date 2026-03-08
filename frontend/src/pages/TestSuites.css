@@ -282,7 +282,8 @@
 }
 
 .modal-content {
-  background: var(--surface);
+  background: linear-gradient(160deg, #eef4ff 0%, #f7faff 55%, #edf3ff 100%);
+  color: #1f2a37;
   border-radius: 18px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-hover);
@@ -290,6 +291,11 @@
   max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.test-suites-container.dark-theme .modal-content {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .modal-header {
@@ -347,9 +353,14 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 0.98rem;
+  color: #1f2a37;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.test-suites-container.dark-theme .form-control {
   color: var(--text);
   background: var(--surface);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-control::placeholder {

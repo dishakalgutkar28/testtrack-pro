@@ -55,7 +55,11 @@ const ExecutionMode = () => {
   const handleStepStatus = async (status) => {
     const tc = getCurrentTestcase();
     const step = getCurrentStep();
-    const key = `${tc.id}-${step.step_number}`;
+    const parsedStepNumber = Number(step?.step_number);
+    const resolvedStepNumber = Number.isInteger(parsedStepNumber) && parsedStepNumber > 0
+      ? parsedStepNumber
+      : currentStepIndex + 1;
+    const key = `${tc.id}-${resolvedStepNumber}`;
 
     setSaving(true);
     try {
@@ -63,7 +67,7 @@ const ExecutionMode = () => {
         `${API_BASE_URL}/test-suites/${suiteId}/execute-step`,
         {
           executionId,
-          stepNumber: step.step_number,
+          stepNumber: resolvedStepNumber,
           testcaseId: tc.id,
           status,
           actualResult: actualResults[key] || '',
@@ -123,6 +127,10 @@ const ExecutionMode = () => {
 
   const tc = getCurrentTestcase();
   const step = getCurrentStep();
+  const parsedCurrentStepNumber = Number(step?.step_number);
+  const resolvedCurrentStepNumber = Number.isInteger(parsedCurrentStepNumber) && parsedCurrentStepNumber > 0
+    ? parsedCurrentStepNumber
+    : currentStepIndex + 1;
   const totalSteps = testcases.reduce((sum, t) => sum + t.steps.length, 0);
   const completedSteps = Object.keys(stepResults).length;
   const progressPercent = (completedSteps / totalSteps) * 100;
@@ -209,9 +217,13 @@ const ExecutionMode = () => {
               <textarea
                 className="actual-result-input"
                 placeholder="What actually happened? (optional)"
-                value={actualResults[`${tc.id}-${step?.step_number}`] || ''}
+                value={actualResults[`${tc.id}-${resolvedCurrentStepNumber}`] || ''}
                 onChange={(e) => {
-                  const key = `${tc.id}-${step.step_number}`;
+                  const parsedStepNumber = Number(step?.step_number);
+                  const resolvedStepNumber = Number.isInteger(parsedStepNumber) && parsedStepNumber > 0
+                    ? parsedStepNumber
+                    : currentStepIndex + 1;
+                  const key = `${tc.id}-${resolvedStepNumber}`;
                   setActualResults(prev => ({
                     ...prev,
                     [key]: e.target.value

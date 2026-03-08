@@ -18,6 +18,8 @@ const TestSuiteDetails = () => {
   const [selectedTestCases, setSelectedTestCases] = useState([]);
 
   const token = localStorage.getItem('token');
+  const userRole = (localStorage.getItem('role') || '').toLowerCase();
+  const canManageExecutions = userRole === 'admin' || userRole === 'tester';
 
   const fetchSuiteDetails = useCallback(async () => {
     setLoading(true);
@@ -172,6 +174,25 @@ const TestSuiteDetails = () => {
     }
   };
 
+  const handleDeleteExecution = async (executionId) => {
+    if (!window.confirm(`Delete execution #${executionId} from history?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${API_BASE_URL}/test-suites/${suiteId}/executions/${executionId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      fetchExecutions();
+      setError('');
+    } catch (err) {
+      console.error('Error deleting execution history:', err);
+      setError(err.response?.data?.error || 'Failed to delete execution history');
+    }
+  };
+
   const handleReorderTestCase = async (testCaseId, direction) => {
     const currentIndex = testCases.findIndex(tc => tc.id === testCaseId);
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -192,7 +213,7 @@ const TestSuiteDetails = () => {
     try {
       await axios.put(
         `${API_BASE_URL}/test-suites/${suiteId}/reorder`,
-        { test_cases: orderUpdates },
+        { testcase_order: orderUpdates },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -354,16 +375,20 @@ const TestSuiteDetails = () => {
                   <th>Failed</th>
                   <th>Executed By</th>
                   <th>Environment</th>
+                  {canManageExecutions && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {executions.map(execution => (
+                {executions.map(execution => {
+                  const statusLabel = execution.overall_status || execution.status;
+
+                  return (
                   <tr key={execution.id}>
                     <td>#{execution.id}</td>
                     <td>{new Date(execution.start_time).toLocaleString()}</td>
                     <td>
-                      <span className={`badge badge-status-${execution.status}`}>
-                        {execution.status}
+                      <span className={`badge badge-status-${statusLabel}`}>
+                        {statusLabel}
                       </span>
                     </td>
                     <td>{execution.total_testcases}</td>
@@ -371,8 +396,20 @@ const TestSuiteDetails = () => {
                     <td className="text-danger">{execution.failed_testcases || 0}</td>
                     <td>{execution.executed_by_name || 'Unknown'}</td>
                     <td>{execution.environment}</td>
+                    {canManageExecutions && (
+                      <td>
+                        <button
+                          className="btn-delete-execution"
+                          onClick={() => handleDeleteExecution(execution.id)}
+                          title="Delete this execution history"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

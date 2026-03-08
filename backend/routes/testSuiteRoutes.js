@@ -345,7 +345,7 @@ router.put(
   requireRole("tester", "admin"),
   (req, res) => {
     const suiteId = req.params.id;
-    const { testcase_order } = req.body; // Array of { testcase_id, order_index }
+    const testcase_order = req.body.testcase_order || req.body.test_cases; // Array of { testcase_id, order_index }
     
     if (!testcase_order || !Array.isArray(testcase_order)) {
       return res.status(400).json({ error: "Test case order array required" });
@@ -519,6 +519,12 @@ router.get("/test-suites/:id/executions", authMiddleware, (req, res) => {
   const sql = `
     SELECT 
       se.*,
+      CASE
+        WHEN COALESCE(se.failed_testcases, 0) > 0 AND COALESCE(se.passed_testcases, 0) > 0 THEN 'partial'
+        WHEN COALESCE(se.failed_testcases, 0) > 0 THEN 'failed'
+        WHEN COALESCE(se.passed_testcases, 0) > 0 THEN 'completed'
+        ELSE se.status
+      END as overall_status,
       u.email as executed_by_name
     FROM suite_executions se
     LEFT JOIN users u ON se.executed_by = u.id
@@ -536,6 +542,39 @@ router.get("/test-suites/:id/executions", authMiddleware, (req, res) => {
     res.json({ success: true, executions: results });
   });
 });
+
+/**
+ * @route   DELETE /api/test-suites/:id/executions/:executionId
+ * @desc    Delete a single execution history record for a suite
+ * @access  Private (Tester, Admin)
+ */
+router.delete(
+  "/test-suites/:id/executions/:executionId",
+  authMiddleware,
+  requireRole("tester", "admin"),
+  (req, res) => {
+    const { id: suiteId, executionId } = req.params;
+
+    const deleteSql = `
+      DELETE FROM suite_executions
+      WHERE id = ? AND suite_id = ?
+    `;
+
+    db.query(deleteSql, [executionId, suiteId], (err, result) => {
+      if (err) {
+        logger.error("Error deleting suite execution", { error: err, suiteId, executionId });
+        return res.status(500).json({ error: "Failed to delete execution history" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Execution history record not found" });
+      }
+
+      logger.info("Suite execution deleted", { suiteId, executionId });
+      return res.json({ success: true, message: "Execution history deleted successfully" });
+    });
+  }
+);
 
 /**
  * @route   GET /api/test-suites/:id/execution/:executionId
@@ -570,19 +609,22 @@ router.get("/test-suites/:id/execution/:executionId", authMiddleware, (req, res)
         tc.title,
         tc.description,
         GROUP_CONCAT(
-          JSON_OBJECT(
-            'step_number', tstep.step_number,
-            'action', tstep.action,
-            'test_data', tstep.test_data,
-            'expected_result', tstep.expected_result
-          ) ORDER BY tstep.step_number SEPARATOR ','
+          CASE
+            WHEN tstep.step_number IS NOT NULL THEN JSON_OBJECT(
+              'step_number', tstep.step_number,
+              'action', tstep.action,
+              'test_data', tstep.test_data,
+              'expected_result', tstep.expected_result
+            )
+          END
+          ORDER BY tstep.step_number SEPARATOR ','
         ) as steps
       FROM suite_testcases st
       JOIN testcases tc ON st.testcase_id = tc.id
       LEFT JOIN test_steps tstep ON tc.id = tstep.testcase_id
       WHERE st.suite_id = ?
       GROUP BY tc.id
-      ORDER BY st.order_position
+      ORDER BY st.order_index, tc.id
     `;
 
     db.query(testcasesSql, [suiteId], (err2, testcases) => {
@@ -614,9 +656,14 @@ router.get("/test-suites/:id/execution/:executionId", authMiddleware, (req, res)
 router.post("/test-suites/:id/execute-step", authMiddleware, (req, res) => {
   const { id: suiteId } = req.params;
   const { executionId, stepNumber, testcaseId, status, actualResult, notes } = req.body;
+  const normalizedStepNumber = Number(stepNumber);
 
-  if (!executionId || stepNumber === undefined || !testcaseId || !status) {
+  if (!executionId || stepNumber === undefined || stepNumber === null || !testcaseId || !status) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  if (!Number.isInteger(normalizedStepNumber) || normalizedStepNumber < 1) {
+    return res.status(400).json({ error: "Invalid step number" });
   }
 
   if (!['pass', 'fail', 'blocked', 'skipped'].includes(status)) {
@@ -629,13 +676,19 @@ router.post("/test-suites/:id/execute-step", authMiddleware, (req, res) => {
     WHERE ts.testcase_id = ? AND ts.step_number = ?
   `;
 
-  db.query(getStepSql, [testcaseId, stepNumber], (err, stepResults) => {
-    if (err || !stepResults.length) {
-      logger.error("Error fetching step", { error: err, testcaseId, stepNumber });
-      return res.status(404).json({ error: "Step not found" });
+  db.query(getStepSql, [testcaseId, normalizedStepNumber], (err, stepResults) => {
+    if (err) {
+      logger.error("Error fetching step", { error: err, testcaseId, stepNumber: normalizedStepNumber });
+      return res.status(500).json({ error: "Failed to fetch step details" });
     }
 
-    const step = stepResults[0];
+    // Some test cases can be created without structured test_steps.
+    // In that case, still allow recording pass/fail against the requested step number.
+    const step = stepResults[0] || {
+      action: null,
+      test_data: null,
+      expected_result: null
+    };
 
     // Save step execution result
     const saveSql = `
@@ -653,7 +706,7 @@ router.post("/test-suites/:id/execute-step", authMiddleware, (req, res) => {
       saveSql,
       [
         executionId,
-        stepNumber,
+        normalizedStepNumber,
         step.action,
         step.test_data,
         step.expected_result,
@@ -674,21 +727,26 @@ router.post("/test-suites/:id/execute-step", authMiddleware, (req, res) => {
         const updateTotalsSql = `
           UPDATE suite_executions se
           SET 
-            passed_steps = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'pass'),
-            failed_steps = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'fail'),
-            blocked_steps = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'blocked'),
-            skipped_steps = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'skipped')
+            passed_testcases = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'pass'),
+            failed_testcases = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'fail'),
+            blocked_testcases = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'blocked'),
+            skipped_testcases = (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'skipped'),
+            status = CASE
+              WHEN (SELECT COUNT(*) FROM test_step_executions WHERE execution_id = ? AND status = 'fail') > 0 THEN 'failed'
+              ELSE 'completed'
+            END,
+            end_time = NOW()
           WHERE id = ?
         `;
 
-        db.query(updateTotalsSql, [executionId, executionId, executionId, executionId, executionId], (err3) => {
+        db.query(updateTotalsSql, [executionId, executionId, executionId, executionId, executionId, executionId], (err3) => {
           if (err3) {
             logger.error("Error updating execution totals", { error: err3 });
           }
 
           res.json({
             success: true,
-            message: `Step ${stepNumber} recorded as ${status.toUpperCase()}`
+            message: `Step ${normalizedStepNumber} recorded as ${status.toUpperCase()}`
           });
         });
       }
