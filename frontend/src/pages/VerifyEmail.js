@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import './VerifyEmail.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ function VerifyEmail() {
     }
 
     // Verify email
-    axios.get(`http://localhost:5000/api/verify-email/${token}`)
+    axios.get(`${API_BASE_URL}/verify-email/${token}`)
       .then(response => {
         setStatus('success');
         setMessage(response.data.message || 'Email verified successfully!');

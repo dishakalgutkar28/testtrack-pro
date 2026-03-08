@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './ResetPassword.css';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/reset-password', {
+      const response = await axios.post(`${API_BASE_URL}/reset-password`, {
         token,
         newPassword
       });
