@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import './TestSuiteDetails.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -8,6 +9,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 const TestSuiteDetails = () => {
   const { suiteId } = useParams();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [suite, setSuite] = useState(null);
   const [testCases, setTestCases] = useState([]);
   const [availableTestCases, setAvailableTestCases] = useState([]);
@@ -234,7 +236,7 @@ const TestSuiteDetails = () => {
   }
 
   return (
-    <div className="suite-details-container">
+    <div className={`suite-details-container ${theme}`}>
       <div className="suite-details-header">
         <button className="btn-back" onClick={() => navigate('/test-suites')}>
           ← Back to Test Suites
