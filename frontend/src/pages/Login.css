@@ -221,19 +221,32 @@ html, body, #root {
   color: white;
 
   background: linear-gradient(120deg, #2ec4b6, #4ea8de 45%, #ff9f1c);
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(33, 201, 186, 0.34);
+  transform: none;
+  box-shadow: none;
 }
 
 .login-btn:active {
-  transform: translateY(0);
+  transform: none;
+}
+
+.login-btn:focus,
+.login-btn:focus-visible {
+  transform: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.login-btn:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ===== LINKS ===== */

@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "../context/ToastContext";
 import useFormValidation from "../hooks/useFormValidation";
 import { loginSchema } from "../validators/schemas";
-import LoadingButton from "../components/LoadingButton";
 import FormError from "../components/FormError";
 import "./Login.css";
 
@@ -165,14 +164,13 @@ function Login() {
             <FormError error={errors.password} touched={touched.password} />
           </div>
 
-          <LoadingButton 
-            type="submit" 
-            loading={isSubmitting}
-            variant="primary"
+          <button
+            type="submit"
             className="login-btn"
+            disabled={isSubmitting}
           >
             Login
-          </LoadingButton>
+          </button>
         </form>
 
         <p className="forgot-password-link">
