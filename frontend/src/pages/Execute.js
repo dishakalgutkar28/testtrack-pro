@@ -53,6 +53,16 @@ function Execute() {
     api.get('/projects').then(r=>setProjects(r.data.projects || [])).catch(()=>{});
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prefillTestcaseId = params.get("testcaseId");
+
+    if (prefillTestcaseId && prefillTestcaseId.trim()) {
+      setTestcaseId(prefillTestcaseId.trim());
+      setExecutionMode("steps");
+    }
+  }, []);
+
   return (
     <div className={`execute-container ${theme}`}>
       <Navbar />

@@ -13,6 +13,7 @@ function Login() {
   const toast = useToast();
   const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const [resendLoading, setResendLoading] = useState(false);
+  const redirectPath = location.state?.from;
 
   // Redirect if already logged in
   useEffect(() => {
@@ -49,16 +50,13 @@ function Login() {
         // Show success message
         toast.success("Login successful! Welcome back.");
 
-        // ⭐ ROLE-BASED REDIRECT
-        if (role === "developer") {
-          navigate("/developer-bugs");
-        } 
-        else if (role === "admin") {
-          navigate("/admin/users");
-        } 
-        else {
-          navigate("/dashboard"); // tester
-        }
+        const roleHome = {
+          admin: "/admin/users",
+          developer: "/developer-bugs",
+          tester: "/dashboard"
+        };
+
+        navigate(redirectPath || roleHome[role] || "/dashboard");
       } else {
         toast.error(res.data.message || "Login failed");
       }

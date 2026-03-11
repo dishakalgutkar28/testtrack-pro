@@ -6,6 +6,7 @@
 
 const db = require("../config/db");
 const logger = require("../utils/logger");
+const { sendEmail } = require("../utils/emailService");
 
 function userExists(userId) {
   return new Promise(resolve => {
@@ -19,7 +20,42 @@ function userExists(userId) {
   });
 }
 
+function getUserById(userId) {
+  return new Promise((resolve, reject) => {
+    db.query("SELECT id, email FROM users WHERE id = ? LIMIT 1", [userId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results && results[0] ? results[0] : null);
+    });
+  });
+}
+
 class NotificationService {
+  static async sendEmailNotification({ toEmail, title, message, link = null }) {
+    try {
+      if (!toEmail) return;
+
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+      const appLink = link ? `${frontendUrl}${link}` : `${frontendUrl}/notifications`;
+
+      const subject = `[TestTrack Pro] ${title}`;
+      const text = `${title}\n\n${message}\n\nOpen in TestTrack Pro: ${appLink}`;
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; line-height: 1.5;">
+          <h2 style="margin: 0 0 12px; color: #1f2937;">${title}</h2>
+          <p style="margin: 0 0 16px; color: #374151;">${message}</p>
+          <a href="${appLink}" style="display: inline-block; padding: 10px 16px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 6px;">
+            Open in TestTrack Pro
+          </a>
+          <p style="margin-top: 16px; font-size: 12px; color: #6b7280;">You are receiving this email because notification alerts are enabled for your account.</p>
+        </div>
+      `;
+
+      await sendEmail(toEmail, subject, html, text);
+    } catch (error) {
+      logger.error("Failed to send notification email", { error: error.message, toEmail, title });
+    }
+  }
+
   /**
    * Send a notification to a user
    * @param {Object} options - Notification options
@@ -34,8 +70,8 @@ class NotificationService {
     }
 
     return new Promise(async (resolve, reject) => {
-      const recipientExists = await userExists(userId);
-      if (!recipientExists) {
+      const recipient = await getUserById(userId);
+      if (!recipient) {
         logger.warn("Recipient user not found, skipping notification", { userId, type });
         return resolve({ success: false, reason: "Recipient not found" });
       }
@@ -72,6 +108,13 @@ class NotificationService {
                 title
               });
               resolve({ success: true, notificationId: retryResult.insertId });
+
+              this.sendEmailNotification({
+                toEmail: recipient.email,
+                title,
+                message,
+                link
+              });
             });
           } else {
             logger.error("Failed to create notification", { error: err, userId, type });
@@ -88,6 +131,13 @@ class NotificationService {
         });
 
         resolve({ success: true, notificationId: result.insertId });
+
+        this.sendEmailNotification({
+          toEmail: recipient.email,
+          title,
+          message,
+          link
+        });
       });
     });
   }
@@ -151,20 +201,23 @@ class NotificationService {
    * @param {number} targetUserId - User to notify
    * @param {string} commentText - Comment content
    */
-  static async notifyCommentAdded(bugId, commenterId, targetUserId, commentText) {
+  static async notifyCommentAdded(entityId, commenterId, targetUserId, commentText, entityType = "bug") {
     try {
       const preview = commentText.substring(0, 100) + (commentText.length > 100 ? "..." : "");
+      const normalizedType = entityType === "testcase" ? "testcase" : "bug";
+      const link = normalizedType === "testcase" ? `/execute?testcaseId=${entityId}` : `/bugs/${entityId}`;
+      const title = normalizedType === "testcase" ? "New Comment on Test Case" : "New Comment on Bug";
 
       await this.sendNotification({
         userId: targetUserId,
         senderId: commenterId,
         type: "comment_added",
-        title: "New Comment on Bug",
+        title,
         message: `Comment: "${preview}"`,
-        link: `/bugs/${bugId}`
+        link
       });
 
-      logger.info("Comment notification sent", { bugId, targetUserId, commenterId });
+      logger.info("Comment notification sent", { entityId, entityType: normalizedType, targetUserId, commenterId });
     } catch (error) {
       logger.error("Failed to send comment notification", { error });
     }

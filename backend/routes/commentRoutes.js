@@ -68,7 +68,8 @@ router.post("/comments", authMiddleware, (req, res) => {
                           bug_id,
                           user_id,
                           targetUserId,
-                          comment_text
+                          comment_text,
+                          "bug"
                         );
                       } catch (notifyErr) {
                         logger.error("Failed to send notification to user", { targetUserId, error: notifyErr });
@@ -111,7 +112,8 @@ router.post("/comments", authMiddleware, (req, res) => {
                           testcase_id,
                           user_id,
                           targetUserId,
-                          comment_text
+                          comment_text,
+                          "testcase"
                         );
                       } catch (notifyErr) {
                         logger.error("Failed to send notification to user", { targetUserId, error: notifyErr });
