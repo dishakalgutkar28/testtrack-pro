@@ -2,6 +2,11 @@
   "name": "testtrack-pro",
   "version": "1.0.0",
   "description": "TestTrack Pro - Comprehensive Test Management Platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "postinstall": "npm --prefix backend install --omit=dev --no-audit --no-fund"
+  },
   "author": "TestTrack Pro Team",
   "license": "ISC",
   "private": true
