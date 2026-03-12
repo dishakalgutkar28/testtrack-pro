@@ -26,7 +26,6 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const reportExportRoutes = require("./routes/reportExportRoutes");
 const attachmentRoutes = require("./routes/attachmentRoutes");
 const retestRoutes = require("./routes/retestRoutes");
-const fixAdminRoute = require("./routes/fixAdminRoute");
 
 const db = require('./config/db');
 const logger = require('./utils/logger');
@@ -104,7 +103,6 @@ app.use("/api", notificationRoutes);
 app.use("/api", reportExportRoutes);
 app.use("/api", attachmentRoutes);
 app.use("/api", retestRoutes);
-app.use("/api", fixAdminRoute);
 
 logger.info("All routes loaded successfully");
 console.log("📝 Comment routes available at:");
