@@ -16,11 +16,19 @@ exports.getAssignmentFilter = (user, table = 'testcases') => {
     return { whereClause: '', params: [] };
   }
 
-  // Testers and developers see only assigned items
-  if (user.role === 'tester' || user.role === 'developer') {
+  // Developers see only items assigned to them
+  if (user.role === 'developer') {
     return {
       whereClause: `${table}.assigned_to = ?`,
       params: [user.id]
+    };
+  }
+
+  // Testers see items they created OR items assigned to them
+  if (user.role === 'tester') {
+    return {
+      whereClause: `(${table}.assigned_to = ? OR ${table}.created_by = ?)`,
+      params: [user.id, user.id]
     };
   }
 
