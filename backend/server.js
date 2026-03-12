@@ -26,6 +26,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const reportExportRoutes = require("./routes/reportExportRoutes");
 const attachmentRoutes = require("./routes/attachmentRoutes");
 const retestRoutes = require("./routes/retestRoutes");
+const syncLocalAdminRoute = require("./routes/syncLocalAdminRoute");
 
 const db = require('./config/db');
 const logger = require('./utils/logger');
@@ -37,12 +38,21 @@ const { getCsrfToken } = require('./middleware/csrfProtection');
 const app = express();
 
 // CORS Configuration - Restrict to allowed origins
+const allowedOrigins = Array.from(
+  new Set(
+    config.cors.origin
+      .split(',')
+      .map(o => o.trim())
+      .filter(Boolean)
+      .concat(['http://localhost:3000', 'http://localhost:3001'])
+  )
+);
+
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = config.cors.origin.split(',').map(o => o.trim());
+
     const isExplicitlyAllowed = allowedOrigins.indexOf(origin) !== -1;
     const isVercelPreview = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
 
@@ -103,6 +113,7 @@ app.use("/api", notificationRoutes);
 app.use("/api", reportExportRoutes);
 app.use("/api", attachmentRoutes);
 app.use("/api", retestRoutes);
+app.use("/api", syncLocalAdminRoute);
 
 logger.info("All routes loaded successfully");
 console.log("📝 Comment routes available at:");
