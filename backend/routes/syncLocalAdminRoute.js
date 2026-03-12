@@ -149,4 +149,59 @@ router.get('/sync-local-admin', (req, res) => {
   });
 });
 
+router.get('/unlock-tester-login', (req, res) => {
+  const email = (req.query.email || '').trim().toLowerCase();
+
+  if (!email) {
+    return res.status(400).json({ success: false, error: 'Query param email is required' });
+  }
+
+  getUserColumns((columnsErr, availableColumns) => {
+    if (columnsErr) {
+      return res.status(500).json({ success: false, error: columnsErr.message });
+    }
+
+    if (!availableColumns.has('email_verified') && !availableColumns.has('is_active')) {
+      return res.json({
+        success: true,
+        message: 'No email verification fields exist in this schema',
+        email
+      });
+    }
+
+    const updates = [];
+    const values = [];
+
+    if (availableColumns.has('email_verified')) {
+      updates.push('email_verified = 1');
+    }
+
+    if (availableColumns.has('is_active')) {
+      updates.push('is_active = 1');
+    }
+
+    values.push(email);
+
+    db.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE email = ?`,
+      values,
+      (updateErr, result) => {
+        if (updateErr) {
+          return res.status(500).json({ success: false, error: updateErr.message });
+        }
+
+        if (!result || result.affectedRows === 0) {
+          return res.status(404).json({ success: false, error: 'User not found', email });
+        }
+
+        return res.json({
+          success: true,
+          message: 'Tester account unlocked for login',
+          email
+        });
+      }
+    );
+  });
+});
+
 module.exports = router;
