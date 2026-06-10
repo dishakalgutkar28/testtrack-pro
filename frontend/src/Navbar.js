@@ -24,14 +24,15 @@ function Navbar() {
   // Other roles (tester, developer) navigation
   return (
     <nav>
-      <Link to="/dashboard">Dashboard</Link> |
+       <Link to="/dashboard">Dashboard</Link> |
       <Link to="/testcase">Testcase</Link> |
       <Link to="/bug">Bug</Link> |
       <Link to="/execute">Execute</Link> |
-      <Link to="/history">History</Link> |
+      <Link to="/execution-history">History</Link> |
       <Link to="/reports">Reports</Link>
     </nav>
   );
+  
 }
 
 export default Navbar;

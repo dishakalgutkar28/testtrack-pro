@@ -341,6 +341,23 @@ function ensureSchema() {
     else console.log('Comments table ready');
   });
 
+  // Create sent_reports table for storing reports sent via the app
+  const createSentReports = `
+    CREATE TABLE IF NOT EXISTS sent_reports (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      project_id INT NULL,
+      sender_id INT NULL,
+      to_email VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NULL,
+      body TEXT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_project_id (project_id),
+      INDEX idx_sender_id (sender_id),
+      INDEX idx_to_email (to_email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `;
+  db.query(createSentReports, err => { if (err) console.log('Create sent_reports table error:', err); else console.log('sent_reports table ready'); });
+
   // Create testcase_history table for version tracking
   const createHistory = `
     CREATE TABLE IF NOT EXISTS testcase_history (

@@ -215,7 +215,7 @@ export const setupSwaggerDocs = (app: any) => {
   }));
   
   // Swagger JSON
-  app.get('/api-docs.json', (req: any, res: any) => {
+  app.get('/api-docs.json', (_req: any, res: any) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
   });

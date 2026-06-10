@@ -1,16 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
 import { useTheme } from "../context/ThemeContext";
 import "./AdminDashboard.css";
+import "./Admintestcasemanagement.css";
 
 function AdminTestcaseManagement() {
   const [testcases, setTestcases] = useState([]);
-  const [testers, setTesters] = useState([]);
+  const [assignableUsers, setAssignableUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [loading, setLoading] = useState(true);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const dropdownRef = useRef(null);
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -20,20 +23,18 @@ function AdminTestcaseManagement() {
       setTestcases(res.data || []);
       setLoading(false);
     } catch (err) {
-      console.log("Error fetching testcases:", err);
       setMessage({ text: "Failed to load testcases", type: "error" });
       setLoading(false);
     }
   }, []);
 
-  const fetchTesters = useCallback(async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await api.get("/admin/users");
-      // Filter only testers
-      const testerUsers = res.data.filter(u => u.role === 'tester');
-      setTesters(testerUsers || []);
+      const users = res.data.filter(u => u.role === "tester" || u.role === "developer");
+      setAssignableUsers(users || []);
     } catch (err) {
-      console.log("Failed to load testers", err);
+      console.log("Failed to load users", err);
     }
   }, []);
 
@@ -46,25 +47,22 @@ function AdminTestcaseManagement() {
     }
   }, []);
 
-  const fetchAllData = useCallback(async () => {
-    try {
-      await Promise.all([
-        fetchTestcases(),
-        fetchTesters(),
-        fetchProjects()
-      ]);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-    }
-  }, [fetchTestcases, fetchTesters, fetchProjects]);
+  useEffect(() => {
+    Promise.all([fetchTestcases(), fetchUsers(), fetchProjects()]);
+  }, [fetchTestcases, fetchUsers, fetchProjects]);
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const deleteTestcase = async (testcaseId) => {
-    if (!window.confirm("Are you sure you want to delete this test case? This cannot be undone.")) return;
-
+    if (!window.confirm("Are you sure you want to delete this test case?")) return;
     try {
       await api.delete(`/testcase/${testcaseId}`);
       setMessage({ text: "Test case deleted successfully!", type: "success" });
@@ -74,38 +72,25 @@ function AdminTestcaseManagement() {
     }
   };
 
-  const assignTestcase = async (testcaseId, testerId) => {
+  const assignTestcase = async (testcaseId, userId) => {
     try {
-      await api.put(`/testcase/${testcaseId}`, {
-        assigned_to: testerId || null
-      });
-      setMessage({ text: "Test case assigned successfully!", type: "success" });
+      await api.put(`/testcase/${testcaseId}`, { assigned_to: userId || null });
+      setMessage({ text: userId ? "Test case assigned successfully!" : "Test case unassigned!", type: "success" });
+      setOpenDropdown(null);
       fetchTestcases();
     } catch (err) {
-      setMessage({ 
-        text: err.response?.data?.error || "Failed to assign test case", 
-        type: "error" 
-      });
+      setMessage({ text: err.response?.data?.error || "Failed to assign test case", type: "error" });
     }
   };
 
-  const getTesterName = (testerId) => {
-    const tester = testers.find(t => t.id === testerId);
-    return tester ? tester.email : "Unassigned";
-  };
-
-  const getProjectName = (projectId) => {
-    const project = projects.find(p => p.id === projectId);
-    return project ? project.name : "No Project";
-  };
+  const getAssignedUser = (assignedId) => assignableUsers.find(u => u.id === parseInt(assignedId));
+  const getProjectName = (projectId) => projects.find(p => p.id === projectId)?.name || "No Project";
 
   if (loading) {
     return (
       <div className={`admin-dashboard-container ${theme}`}>
         <Navbar />
-        <div className="admin-dashboard">
-          <p>Loading...</p>
-        </div>
+        <div className="admin-dashboard"><p>Loading...</p></div>
       </div>
     );
   }
@@ -116,20 +101,14 @@ function AdminTestcaseManagement() {
       <div className="admin-dashboard">
         <div className="greeting-section">
           <h1>Test Case Management 📋</h1>
-          <p>Assign test cases to testers and manage test execution</p>
-          <button 
-            className="back-to-dashboard-btn"
-            onClick={() => navigate("/admin/users")}
-            style={{ marginTop: "15px" }}
-          >
+          <p>Assign test cases to testers and developers</p>
+          <button className="back-to-dashboard-btn" onClick={() => navigate("/admin/users")} style={{ marginTop: "15px" }}>
             ← Back to Admin Dashboard
           </button>
         </div>
 
         {message.text && (
-          <div className={`message ${message.type}`}>
-            {message.text}
-          </div>
+          <div className={`message ${message.type}`}>{message.text}</div>
         )}
 
         <div className="testcase-management-section">
@@ -141,67 +120,102 @@ function AdminTestcaseManagement() {
             <p className="no-data">📭 No test cases found.</p>
           ) : (
             <div className="data-grid">
-              {testcases.map(tc => (
-                <div key={tc.id} className="data-card">
-                  <div className="card-header">
-                    <h3>TC-{tc.id} - {tc.title}</h3>
-                    <span className={`priority-badge priority-${tc.priority || 'medium'}`}>
-                      {(tc.priority || 'medium').toUpperCase()}
-                    </span>
-                  </div>
-                  
-                  <p className="card-description">{tc.description || "No description"}</p>
-                  
-                  <div className="card-meta">
-                    <p>
-                      <strong>📂 Project:</strong> {getProjectName(tc.project_id)}
-                    </p>
-                    <p>
-                      <strong>⚡ Priority:</strong> {tc.priority || 'Medium'}
-                    </p>
-                    <p>
-                      <strong>📝 Type:</strong> {tc.type || 'Manual'}
-                    </p>
-                  </div>
+              {testcases.map(tc => {
+                const assignedUser = getAssignedUser(tc.assigned_to);
+                const isOpen = openDropdown === tc.id;
 
-                  {/* Assignment Section */}
-                  <div className="bug-assignment" style={{ marginTop: "15px", padding: "15px", background: "#f8fafc", borderRadius: "8px" }}>
-                    <div className="form-group">
-                      <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
-                        👤 Assign To Tester:
-                      </label>
-                      <select
-                        className="assign-dropdown"
-                        value={tc.assigned_to || ""}
-                        onChange={(e) => assignTestcase(tc.id, e.target.value)}
-                        style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "2px solid #cbd5e1" }}
-                      >
-                        <option value="">Unassigned</option>
-                        {testers.map(tester => (
-                          <option key={tester.id} value={tester.id}>{tester.email}</option>
-                        ))}
-                      </select>
+                return (
+                  <div key={tc.id} className="data-card">
+                    <div className="card-header">
+                      <h3>{tc.test_case_id || `TC-${tc.id}`} — {tc.title}</h3>
+                      <span className={`priority-badge priority-${tc.priority || "medium"}`}>
+                        {(tc.priority || "medium").toUpperCase()}
+                      </span>
                     </div>
 
-                    {tc.assigned_to && (
-                      <p style={{ marginTop: "10px", fontSize: "13px", color: "#059669" }}>
-                        ✓ Assigned to: <strong>{getTesterName(tc.assigned_to)}</strong>
-                      </p>
-                    )}
-                  </div>
+                    <p className="card-description">{tc.description || "No description"}</p>
 
-                  <div className="card-actions" style={{ marginTop: "12px" }}>
-                    <button 
-                      className="btn-delete"
-                      onClick={() => deleteTestcase(tc.id)}
-                      title="Delete this test case"
-                      style={{flex: 1, background: "#dc2626"}}
-                    >
-                      🗑️ DELETE
-                    </button>
+                    <div className="card-meta">
+                      <p><strong>📂 Project:</strong> {getProjectName(tc.project_id)}</p>
+                    </div>
+
+                    <div className="atm-assign-wrapper" ref={isOpen ? dropdownRef : null}>
+                      <p className="atm-assign-label">👤 Assign To</p>
+
+                      <button
+                        className={`atm-assign-trigger ${assignedUser ? "atm-assigned" : "atm-unassigned"}`}
+                        onClick={() => setOpenDropdown(isOpen ? null : tc.id)}
+                      >
+                        <span className="atm-trigger-left">
+                          {assignedUser ? (
+                            <>
+                              <span className={`atm-role-dot atm-dot-${assignedUser.role}`} />
+                              <span className="atm-trigger-email">{assignedUser.email}</span>
+                              <span className={`atm-role-chip atm-chip-${assignedUser.role}`}>{assignedUser.role}</span>
+                            </>
+                          ) : (
+                            <span className="atm-trigger-placeholder">Select user to assign...</span>
+                          )}
+                        </span>
+                        <span className={`atm-chevron ${isOpen ? "atm-chevron-open" : ""}`}>▾</span>
+                      </button>
+
+                      {isOpen && (
+                        <div className="atm-dropdown">
+                          <div
+                            className="atm-option atm-option-unassign"
+                            onClick={() => assignTestcase(tc.id, null)}
+                          >
+                            <span className="atm-role-dot atm-dot-none" />
+                            <span>Unassigned</span>
+                          </div>
+
+                          {["developer", "tester"].map(role => {
+                            const group = assignableUsers.filter(u => u.role === role);
+                            if (group.length === 0) return null;
+                            return (
+                              <div key={role}>
+                                <div className="atm-group-label">
+                                  {role === "developer" ? "🧑‍💻 Developers" : "🧪 Testers"}
+                                </div>
+                                {group.map(user => (
+                                  <div
+                                    key={user.id}
+                                    className={`atm-option ${tc.assigned_to === user.id ? "atm-option-active" : ""}`}
+                                    onClick={() => assignTestcase(tc.id, user.id)}
+                                  >
+                                    <span className={`atm-role-dot atm-dot-${user.role}`} />
+                                    <span className="atm-option-email">{user.email}</span>
+                                    <span className={`atm-role-chip atm-chip-${user.role}`}>{user.role}</span>
+                                    {tc.assigned_to === user.id && <span className="atm-check">✓</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {assignedUser && (
+                        <p className="atm-assigned-note">
+                          ✓ Assigned to <strong>{assignedUser.email}</strong>
+                          <span className={`atm-role-chip atm-chip-${assignedUser.role}`}>{assignedUser.role}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="card-actions" style={{ marginTop: "12px" }}>
+                      <button
+                        className="btn-delete"
+                        onClick={() => deleteTestcase(tc.id)}
+                        style={{ flex: 1, background: "#dc2626" }}
+                      >
+                        🗑️ DELETE
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

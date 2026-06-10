@@ -12,7 +12,7 @@ import { AppError } from '@testtrack-pro/shared';
 export const errorLogger = (
   err: Error,
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   // Log error details
@@ -41,7 +41,7 @@ export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   // Default to 500 Internal Server Error
   let statusCode = err.statusCode || 500;
@@ -100,7 +100,7 @@ export const errorHandler = (
  */
 export const notFoundHandler = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const error = new AppError(

@@ -1,0 +1,298 @@
+/* ===== ADMIN BUG MANAGEMENT - CUSTOM DROPDOWN ===== */
+
+.abm-assign-block {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+}
+
+/* ── Shared label ── */
+.abm-assign-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 7px 0;
+}
+
+/* ── Trigger Button ── */
+.abm-assign-wrapper { position: relative; }
+
+.abm-assign-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.abm-assign-trigger.abm-unassigned {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+  color: #6b7280;
+}
+
+.abm-assign-trigger.abm-assigned {
+  background: rgba(255,77,109,0.08);
+  border-color: #ff4d6d;
+  color: #f1f5f9;
+}
+
+.abm-assign-trigger:hover {
+  border-color: #ff4d6d;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.12);
+}
+
+.abm-trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.abm-trigger-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  color: #f1f5f9;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.abm-trigger-placeholder {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.abm-chevron {
+  font-size: 16px;
+  color: #ff4d6d;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.abm-chevron-open { transform: rotate(180deg); }
+
+/* ── Dropdown Panel ── */
+.abm-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #1e1b2e;
+  border: 1.5px solid rgba(255, 77, 109, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  overflow: hidden;
+  animation: abm-dropdown-in 0.15s ease;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+@keyframes abm-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Group Label ── */
+.abm-group-label {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #ff9eb0;
+  background: rgba(255, 77, 109, 0.08);
+  border-top: 1px solid rgba(255, 77, 109, 0.12);
+}
+
+/* ── Option Row ── */
+.abm-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.abm-option:hover        { background: rgba(255, 77, 109, 0.14); }
+.abm-option-active       { background: rgba(255, 77, 109, 0.22); color: #ffb3c1; }
+.abm-option-unassign     { color: #94a3b8; border-bottom: 1px solid rgba(255,255,255,0.06); font-style: italic; }
+
+.abm-option-email {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f1f5f9;
+  font-weight: 500;
+}
+
+.abm-check {
+  color: #34d399;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* ── Role Dot ── */
+.abm-role-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.abm-dot-developer { background: #60a5fa; box-shadow: 0 0 6px #3b82f6; }
+.abm-dot-tester    { background: #34d399; box-shadow: 0 0 6px #10b981; }
+.abm-dot-none      { background: #6b7280; }
+
+/* ── Role Chip ── */
+.abm-role-chip {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+}
+
+.abm-chip-developer {
+  background: rgba(96, 165, 250, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.abm-chip-tester {
+  background: rgba(52, 211, 153, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* ── Assigned Note ── */
+.abm-assigned-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #34d399;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+/* ── Due Date Input ── */
+.abm-due-wrapper { }
+
+.abm-date-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.abm-date-input:hover  { border-color: rgba(255,255,255,0.2); }
+.abm-date-input:focus  {
+  outline: none;
+  border-color: #ff4d6d;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.12);
+}
+
+/* ── Scrollbar ── */
+.abm-dropdown::-webkit-scrollbar       { width: 4px; }
+.abm-dropdown::-webkit-scrollbar-track { background: transparent; }
+.abm-dropdown::-webkit-scrollbar-thumb { background: rgba(255,77,109,0.4); border-radius: 4px; }
+
+/* ── Light theme overrides ── */
+.light-theme .abm-assign-block {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.light-theme .abm-assign-trigger.abm-unassigned {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #9ca3af;
+}
+
+.light-theme .abm-assign-trigger.abm-assigned {
+  background: rgba(220, 38, 38, 0.05);
+  border-color: #dc2626;
+  color: #111827;
+}
+
+.light-theme .abm-trigger-email { color: #111827; }
+
+.light-theme .abm-dropdown {
+  background: #ffffff;
+  border-color: rgba(220, 38, 38, 0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.light-theme .abm-group-label {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.05);
+  border-top-color: rgba(220, 38, 38, 0.1);
+}
+
+.light-theme .abm-option          { color: #1f2937; }
+.light-theme .abm-option:hover     { background: rgba(220, 38, 38, 0.06); }
+.light-theme .abm-option-active    { background: rgba(220, 38, 38, 0.1); color: #991b1b; }
+.light-theme .abm-option-unassign  { color: #6b7280; border-bottom-color: rgba(0,0,0,0.06); }
+.light-theme .abm-option-email     { color: #111827; }
+
+.light-theme .abm-chip-developer {
+  background: rgba(59,130,246,0.1);
+  color: #1d4ed8;
+  border-color: rgba(59,130,246,0.25);
+}
+.light-theme .abm-chip-tester {
+  background: rgba(16,185,129,0.1);
+  color: #065f46;
+  border-color: rgba(16,185,129,0.25);
+}
+
+.light-theme .abm-date-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #111827;
+}
+.light-theme .abm-date-input:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
+}
+
+/* Fix card title visibility */
+.data-card .card-header h3 {
+  color: var(--text-primary, #f1f5f9) !important;
+}
+.light-theme .data-card .card-header h3 {
+  color: #111827 !important;
+}

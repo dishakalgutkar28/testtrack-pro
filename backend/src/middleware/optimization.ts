@@ -83,7 +83,7 @@ function generateETag(content: any): string {
 /**
  * Response time header middleware
  */
-export const responseTime = (req: Request, res: Response, next: NextFunction): void => {
+export const responseTime = (_req: Request, res: Response, next: NextFunction): void => {
   const startTime = Date.now();
   
   res.on('finish', () => {
@@ -97,7 +97,7 @@ export const responseTime = (req: Request, res: Response, next: NextFunction): v
 /**
  * Security headers middleware
  */
-export const securityHeaders = (req: Request, res: Response, next: NextFunction): void => {
+export const securityHeaders = (_req: Request, res: Response, next: NextFunction): void => {
   // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'DENY');
   

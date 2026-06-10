@@ -159,6 +159,124 @@ function Reports() {
     window.URL.revokeObjectURL(url);
   };
 
+  // Generate a plain-text version of the report for sharing via email or chat
+  const generateReportText = () => {
+    const project = projects.find(p => p.id === selectedProject);
+    const lines = [];
+    lines.push("Test Track Pro - Analytics Report");
+    lines.push("");
+    lines.push(`Project: ${project?.name || "-"}`);
+    lines.push(`Generated: ${new Date().toLocaleString()}`);
+    lines.push("");
+
+    lines.push("TEST CASE STATISTICS:");
+    lines.push(`- Total Test Cases: ${testcaseStats?.total_testcases || 0}`);
+    lines.push(`- Draft: ${testcaseStats?.draft_count || 0}`);
+    lines.push(`- Ready: ${testcaseStats?.ready_count || 0}`);
+    lines.push(`- Executing: ${testcaseStats?.executing_count || 0}`);
+    lines.push(`- Completed: ${testcaseStats?.completed_count || 0}`);
+    lines.push(`- Closed: ${testcaseStats?.closed_count || 0}`);
+    lines.push("");
+
+    lines.push("BUG STATISTICS:");
+    lines.push(`- Total Bugs: ${bugStats?.total_bugs || 0}`);
+    lines.push(`- Open: ${bugStats?.open_count || 0}`);
+    lines.push(`- In Progress: ${bugStats?.progress_count || 0}`);
+    lines.push(`- Closed: ${bugStats?.closed_count || 0}`);
+    lines.push(`- Critical: ${bugStats?.critical_count || 0}`);
+    lines.push(`- High: ${bugStats?.high_count || 0}`);
+    lines.push(`- Medium: ${bugStats?.medium_count || 0}`);
+    lines.push(`- Low: ${bugStats?.low_count || 0}`);
+    lines.push("");
+
+    lines.push("EXECUTION STATISTICS:");
+    lines.push(`- Total Executions: ${executionStats?.total_executions || 0}`);
+    lines.push(`- Passed: ${executionStats?.pass_count || 0}`);
+    lines.push(`- Failed: ${executionStats?.fail_count || 0}`);
+    lines.push(`- Pending: ${executionStats?.pending_count || 0}`);
+    lines.push(`- Pass Rate (%): ${(executionStats?.pass_percentage || 0)}`);
+    lines.push(`- Avg Duration (min): ${(executionStats?.avg_duration_minutes || 0)}`);
+    lines.push("");
+
+    // Optional breakdowns if available
+    if (priorityData && priorityData.length) {
+      lines.push("PRIORITY BREAKDOWN:");
+      priorityData.forEach(item => {
+        lines.push(`- ${item.name || item.label || "Unknown"}: ${item.count || item.value || 0}`);
+      });
+      lines.push("");
+    }
+
+    if (automationData && automationData.length) {
+      lines.push("AUTOMATION STATUS:");
+      automationData.forEach(item => {
+        lines.push(`- ${item.name || item.label || "Unknown"}: ${item.count || item.value || 0}`);
+      });
+      lines.push("");
+    }
+
+    return lines.join("\n");
+  };
+
+  const [reportText, setReportText] = useState("");
+  const [showReportText, setShowReportText] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+
+  const copyReportText = async () => {
+    try {
+      await navigator.clipboard.writeText(reportText);
+      alert("Report text copied to clipboard");
+    } catch (err) {
+      console.error("Clipboard write failed:", err);
+      alert("Failed to copy report text. You can manually select and copy it.");
+    }
+  };
+
+  const emailReportText = () => {
+    // Fallback: open mail client if backend sending is not desired
+    const project = projects.find(p => p.id === selectedProject) || {};
+    const subject = `TestTrack Pro Report - ${project.name || 'Project'}`;
+    const body = reportText;
+    const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  };
+
+  const sendReportToBackend = async () => {
+    if (!selectedProject) { alert('Please select a project first'); return; }
+    // Basic email validation if provided
+    if (recipientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    try {
+      const payload = {
+        project_id: selectedProject,
+        subject: `TestTrack Pro Report - ${projects.find(p => p.id === selectedProject)?.name || ''}`,
+        text: reportText
+      };
+      if (recipientEmail) payload.to = recipientEmail;
+
+      const res = await api.post('/reports/send', payload);
+      if (res.data && res.data.success) {
+        alert('Report sent successfully');
+        setShowReportText(false);
+      } else {
+        alert('Failed to send report');
+      }
+    } catch (err) {
+      console.error('Send report error:', err?.response?.data || err.message);
+      const serverError = err?.response?.data?.error;
+      const serverDetails = err?.response?.data?.details;
+      const message = [serverError, serverDetails].filter(Boolean).join(': ') || err?.message || 'Failed to send report';
+      const isAuthError = /authentication|invalid login|smtp|credentials|535/i.test(message);
+      if (isAuthError) {
+        alert(`${message}\n\nTip: Click \"Open Mail Client\" to send manually, or update backend SMTP credentials.`);
+      } else {
+        alert(message);
+      }
+    }
+  };
+
   // Chart configurations
   const executionChartData = {
     labels: ["Passed", "Failed", "Pending"],
@@ -397,6 +515,30 @@ function Reports() {
               ))}
             </select>
           </div>
+          <div className="report-actions">
+  <button
+    className="export-btn export-csv"
+    onClick={exportToCSV}
+  >
+    📊 Export CSV
+  </button>
+
+  <button
+    className="export-btn export-text"
+    onClick={() => {
+      if (!selectedProject) {
+        alert('Please select a project first');
+        return;
+      }
+
+      const text = generateReportText();
+      setReportText(text);
+      setShowReportText(true);
+    }}
+  >
+    📄 Export Report
+  </button>
+</div>
         </div>
 
         {!selectedProject ? (
@@ -533,6 +675,30 @@ function Reports() {
           </>
         )}
       </div>
+      {showReportText && (
+        <div className="report-text-modal" style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ width: '90%', maxWidth: 900, background: '#fff', padding: 20, borderRadius: 8 }}>
+            <h3>Report Text</h3>
+            <textarea readOnly value={reportText} style={{ width: '100%', height: 280, padding: 8, fontFamily: 'monospace', fontSize: 13 }} />
+            <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+              <label style={{ whiteSpace: 'nowrap' }}>Recipient email (optional):</label>
+              <input
+                type="email"
+                placeholder="developer@example.com"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                style={{ flex: 1, padding: '6px 8px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, justifyContent: 'flex-end' }}>
+              <button onClick={copyReportText}>Copy to Clipboard</button>
+              <button onClick={sendReportToBackend}>Send to Developer</button>
+              <button onClick={emailReportText}>Open Mail Client</button>
+              <button onClick={() => setShowReportText(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

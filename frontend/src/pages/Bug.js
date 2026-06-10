@@ -65,8 +65,8 @@ function Bug() {
 
   const assignBug = async (bugId, developerId) => {
     try {
-      await api.put(`/bugs/${bugId}`, { 
-        assigned_to: developerId || null 
+      await api.put(`/bugs/${bugId}`, {
+        assigned_to: developerId || null
       });
       setSuccess("Bug assigned successfully!");
       fetchBugs();
@@ -77,8 +77,8 @@ function Bug() {
 
   const setDueDate = async (bugId, dueDate) => {
     try {
-      await api.put(`/bugs/${bugId}`, { 
-        due_date: dueDate || null 
+      await api.put(`/bugs/${bugId}`, {
+        due_date: dueDate || null
       });
       setSuccess("Due date updated!");
       fetchBugs();
@@ -87,62 +87,133 @@ function Bug() {
     }
   };
 
+  const openCount = bugs.filter(b => (b.status || "open") === "open").length;
+  const inProgressCount = bugs.filter(b => b.status === "in-progress" || b.status === "progress").length;
+  const closedCount = bugs.filter(b => b.status === "closed").length;
+
   return (
     <div className={`bug-container ${theme}`}>
       <Navbar />
 
       <div className="bug-content">
-        <h1>Bug Management</h1>
-        {role === "admin" && (
-          <p className="subtitle">Create and manage bug assignments</p>
-        )}
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+        {/* Header */}
+        <div className="page-header">
+          <div className="header-left">
+            <div className="header-eyebrow">
+              <span className="eyebrow-dot"></span>
+              <span>Bug Tracker</span>
+            </div>
+            <h1>Issue Management</h1>
+            {role === "admin" && (
+              <p className="subtitle">Track, assign and resolve software defects</p>
+            )}
+          </div>
 
-        {/* Button to open bug form modal */}
-        {(role === "tester" || role === "admin") && (
-          <div style={{ marginBottom: "20px" }}>
-            <button 
-              className="submit-btn" 
+          {(role === "tester" || role === "admin") && (
+            <button
+              className="report-btn"
               onClick={() => {
-                fetchProjects();  // Refresh projects when form opens
+                fetchProjects();
                 setIsFormOpen(true);
               }}
-              style={{ fontSize: "16px", padding: "12px 24px" }}
             >
-              <span className="btn-icon">+</span>
-              Report New Bug
+              <svg className="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Report Bug
             </button>
+          )}
+        </div>
+
+        {/* Alerts */}
+        {error && (
+          <div className="alert alert-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="alert alert-success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {success}
           </div>
         )}
 
+        {/* Stats Row */}
+        <div className="stats-row">
+          <div className="stat-tile stat-total">
+            <span className="stat-val">{bugs.length}</span>
+            <span className="stat-label">Total</span>
+          </div>
+          <div className="stat-tile stat-open">
+            <span className="stat-val">{openCount}</span>
+            <span className="stat-label">Open</span>
+          </div>
+          <div className="stat-tile stat-progress">
+            <span className="stat-val">{inProgressCount}</span>
+            <span className="stat-label">In Progress</span>
+          </div>
+          <div className="stat-tile stat-closed">
+            <span className="stat-val">{closedCount}</span>
+            <span className="stat-label">Resolved</span>
+          </div>
+        </div>
+
         {/* Bug List */}
         <div className="bugs-list-section">
-          <h2>Recent Bugs</h2>
+          <div className="section-header">
+            <h2>Recent Issues</h2>
+            <span className="bug-count">{bugs.length} bugs</span>
+          </div>
 
           {bugs.length === 0 ? (
-            <p className="empty-message">No bugs reported yet</p>
+            <div className="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                <path d="M9 9h.01M15 9h.01M9.5 14.5s.8 1.5 2.5 1.5 2.5-1.5 2.5-1.5" />
+              </svg>
+              <p>No bugs reported yet</p>
+              <span>Clear skies — or nothing tracked yet.</span>
+            </div>
           ) : (
             <div className="bugs-grid">
-              {bugs.map((bug) => (
-                <div key={bug.id} className="bug-card">
-                  <div className="bug-header">
-                    <h3>{bug.title}</h3>
-                    <span className={`status-badge status-${bug.status || "open"}`}>
-                      {bug.status || "open"}
-                    </span>
+              {bugs.map((bug, idx) => (
+                <div key={bug.id} className="bug-card" style={{ animationDelay: `${idx * 60}ms` }}>
+
+                  <div className="bug-card-top">
+                    <div className="bug-meta">
+                      <span className={`status-chip status-${bug.status || "open"}`}>
+                        <span className="status-dot"></span>
+                        {bug.status || "open"}
+                      </span>
+                      {bug.severity && (
+                        <span className={`severity-chip severity-${bug.severity}`}>
+                          {bug.severity}
+                        </span>
+                      )}
+                    </div>
+                    <span className="bug-id">#{bug.id}</span>
                   </div>
 
-                  <p className="bug-description">
-                    {bug.description}
-                  </p>
+                  <h3 className="bug-title">{bug.title}</h3>
+                  <p className="bug-description">{bug.description}</p>
 
                   {/* Assignment Section */}
                   {(role === "admin" || role === "tester") ? (
                     <div className="bug-assignment">
-                      <div className="form-group">
-                        <label>Assigned To:</label>
+                      <div className="assignment-field">
+                        <label>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                          </svg>
+                          Assignee
+                        </label>
                         <select
                           className="assign-dropdown"
                           value={bug.assigned_to || ""}
@@ -156,8 +227,13 @@ function Bug() {
                       </div>
 
                       {role === "admin" && (
-                        <div className="form-group">
-                          <label>Due Date:</label>
+                        <div className="assignment-field">
+                          <label>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            Due Date
+                          </label>
                           <input
                             type="date"
                             className="date-input"
@@ -169,27 +245,31 @@ function Bug() {
                     </div>
                   ) : (
                     (bug.assigned_to || bug.due_date) && (
-                      <div className="bug-info">
+                      <div className="bug-info-row">
                         {bug.assigned_to && (
-                          <div className="info-item">
-                            <span className="info-label">Assigned To:</span>
-                            <span className="info-value">{getDeveloperName(bug.assigned_to)}</span>
+                          <div className="info-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                            </svg>
+                            {getDeveloperName(bug.assigned_to)}
                           </div>
                         )}
                         {bug.due_date && (
-                          <div className="info-item">
-                            <span className="info-label">Due Date:</span>
-                            <span className="info-value">{new Date(bug.due_date).toLocaleDateString()}</span>
+                          <div className="info-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {new Date(bug.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </div>
                         )}
                       </div>
                     )
                   )}
 
-                  <Attachments entityType="bug" entityId={bug.id} />
-
-                  {/* Bug Comments */}
-                  <Comments bugId={bug.id} />
+                  <div className="bug-card-footer">
+                    <Attachments entityType="bug" entityId={bug.id} />
+                    <Comments bugId={bug.id} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -197,8 +277,7 @@ function Bug() {
         </div>
       </div>
 
-      {/* Bug Form Modal */}
-      <BugFormModal 
+      <BugFormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSuccess={handleFormSuccess}

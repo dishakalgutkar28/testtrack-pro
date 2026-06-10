@@ -79,7 +79,7 @@ export class ResponseHandler {
     sendSuccess(res, data, message, 201);
   }
 
-  static noContent(res: Response, message: string = 'No content'): void {
+  static noContent(res: Response, _message: string = 'No content'): void {
     res.status(204).send();
   }
 

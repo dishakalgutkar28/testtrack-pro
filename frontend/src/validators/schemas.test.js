@@ -10,7 +10,6 @@ import {
   bugReportSchema,
   projectSchema,
   commentSchema,
-  forgotPasswordSchema,
   resetPasswordSchema
 } from '../validators/schemas';
 

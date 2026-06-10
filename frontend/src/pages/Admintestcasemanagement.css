@@ -1,0 +1,272 @@
+/* ===== ADMIN TESTCASE MANAGEMENT - CUSTOM DROPDOWN ===== */
+
+.atm-assign-wrapper {
+  position: relative;
+  margin-top: 16px;
+}
+
+.atm-assign-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 8px 0;
+}
+
+/* Trigger Button */
+.atm-assign-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  background: var(--surface-primary, #fff);
+  text-align: left;
+}
+
+.atm-assign-trigger.atm-unassigned {
+  border-color: rgba(0,0,0,0.12);
+  color: #9ca3af;
+}
+
+.atm-assign-trigger.atm-assigned {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.06);
+  color: var(--text-primary, #1f2937);
+}
+
+.atm-assign-trigger:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.atm-trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.atm-trigger-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  color: var(--text-primary, #1f2937);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.atm-trigger-placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.atm-chevron {
+  font-size: 16px;
+  color: #7c3aed;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.atm-chevron-open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Panel */
+.atm-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #1e1b2e;
+  border: 1.5px solid rgba(124, 58, 237, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+  animation: atm-dropdown-in 0.15s ease;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@keyframes atm-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Group Label */
+.atm-group-label {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #a78bfa;
+  background: rgba(124, 58, 237, 0.1);
+  border-top: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+/* Option Row */
+.atm-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.atm-option:hover {
+  background: rgba(124, 58, 237, 0.18);
+}
+
+.atm-option-active {
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
+}
+
+.atm-option-unassign {
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  font-style: italic;
+}
+
+.atm-option-email {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f1f5f9;
+  font-weight: 500;
+}
+
+.atm-check {
+  color: #34d399;
+  font-weight: 800;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Role Dot */
+.atm-role-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.atm-dot-developer { background: #60a5fa; box-shadow: 0 0 6px #3b82f6; }
+.atm-dot-tester    { background: #34d399; box-shadow: 0 0 6px #10b981; }
+.atm-dot-none      { background: #6b7280; }
+
+/* Role Chip */
+.atm-role-chip {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+}
+
+.atm-chip-developer {
+  background: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.atm-chip-tester {
+  background: rgba(52, 211, 153, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* Assigned Note */
+.atm-assigned-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #34d399;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+/* Scrollbar for dropdown */
+.atm-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+.atm-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+.atm-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.4);
+  border-radius: 4px;
+}
+
+/* Light theme overrides */
+.light-theme .atm-dropdown {
+  background: #ffffff;
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.light-theme .atm-group-label {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.06);
+}
+
+.light-theme .atm-option {
+  color: #1f2937;
+}
+
+.light-theme .atm-option:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.light-theme .atm-option-active {
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+}
+
+.light-theme .atm-option-email {
+  color: #111827;
+}
+
+.light-theme .atm-option-unassign {
+  color: #6b7280;
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+
+.light-theme .atm-chip-developer {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.25);
+}
+.data-card .card-header h3 {
+  color: #ffffff !important;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.light-theme .data-card .card-header h3 {
+  color: #1f2937 !important;
+}
+.light-theme .atm-chip-tester {
+  background: rgba(16, 185, 129, 0.1);
+  color: #065f46;
+  border-color: rgba(16, 185, 129, 0.25);
+}

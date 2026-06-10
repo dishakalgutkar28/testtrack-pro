@@ -4,7 +4,6 @@
  */
 
 export class MockDatabasePool {
-  private mockConnections: any[] = [];
   private queryResults: Map<string, any> = new Map();
 
   constructor() {
@@ -37,7 +36,7 @@ export class MockDatabasePool {
   /**
    * Mock execute method (for INSERT, UPDATE, DELETE)
    */
-  execute = jest.fn().mockImplementation((sql: string) => {
+  execute = jest.fn().mockImplementation((_sql: string) => {
     return Promise.resolve({
       insertId: 1,
       affectedRows: 1,

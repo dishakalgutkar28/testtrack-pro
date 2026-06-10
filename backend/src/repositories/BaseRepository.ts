@@ -2,8 +2,7 @@ import {
   DatabaseConnection,
   FilterCriteria,
   FindOptions,
-  PaginatedResult,
-  PaginationMeta
+  PaginatedResult
 } from '../types';
 import { DatabaseError, DuplicateError } from './errors';
 

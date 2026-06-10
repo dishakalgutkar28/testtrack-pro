@@ -11,6 +11,25 @@ const logger = require("../utils/logger");
 const { generatePDFReport } = require("../utils/pdfExport");
 const { generateExcelReport } = require("../utils/excelExport");
 const { generateCSVReport } = require("../utils/csvExport");
+const emailService = require("../utils/emailService");
+
+const formatEmailError = (error) => {
+  const message = error?.message || "Failed to send email";
+  const badAuth = /invalid login|badcredentials|authentication failed|535/i.test(message);
+
+  if (badAuth) {
+    return {
+      error: "Email provider authentication failed",
+      details: "SMTP credentials are invalid. Update email provider username/password (or app password) in backend environment settings.",
+      raw: message
+    };
+  }
+
+  return {
+    error: "Failed to send report email",
+    details: message
+  };
+};
 
 /**
  * @route   GET /api/reports/export/bugs/pdf
@@ -298,6 +317,87 @@ router.get("/reports/export/execution-summary/pdf", authMiddleware, async (req, 
   } catch (error) {
     logger.error("Error in execution PDF export route", { error });
     res.status(500).json({ error: "Failed to export report" });
+  }
+});
+
+/**
+ * @route   POST /api/reports/send
+ * @desc    Send a plain-text or HTML report to a recipient (project developer or provided email)
+ * @access  Private
+ */
+router.post('/reports/send', authMiddleware, async (req, res) => {
+  try {
+    const { project_id, to, subject, text, html } = req.body;
+
+    if (!text && !html) {
+      return res.status(400).json({ error: 'Report content required (text or html)' });
+    }
+
+    let recipient = to;
+
+    // If no explicit recipient provided, try to fetch from project metadata
+    if (!recipient && project_id) {
+      db.query('SELECT * FROM projects WHERE id = ? LIMIT 1', [project_id], (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to fetch project' });
+        }
+
+        const project = results && results[0] ? results[0] : null;
+        if (!project) return res.status(400).json({ error: 'Project not found and no recipient provided' });
+
+        // Check common email-like fields on the project record
+        const emailFields = ['developerEmail','developer_email','devEmail','dev_email','ownerEmail','owner_email','contactEmail','contact_email','email'];
+        recipient = emailFields.map(f => project[f]).find(Boolean);
+
+        if (!recipient) return res.status(400).json({ error: 'No recipient email found on project and none provided' });
+
+        // Send email
+        emailService.sendEmail(recipient, subject || `TestTrack Pro Report - ${project.name || 'Project'}`, html || null, text || null)
+          .then(result => res.json({ success: true, messageId: result.messageId }))
+          .catch(e => {
+            logger.error('Error sending report email (project recipient)', { error: e.message, projectId: project_id, to: recipient });
+            res.status(500).json(formatEmailError(e));
+          });
+      });
+      return;
+    }
+
+    if (!recipient) return res.status(400).json({ error: 'Recipient email required' });
+
+    const sendResult = await emailService.sendEmail(recipient, subject || 'TestTrack Pro Report', html || null, text || null);
+        // Persist sent report record (best-effort)
+        try {
+          const insertSql = `INSERT INTO sent_reports (project_id, sender_id, to_email, subject, body) VALUES (?, ?, ?, ?, ?)`;
+          const senderId = req.user?.id || null;
+          db.query(insertSql, [project_id || null, senderId, recipient, subject || null, text || null], (e) => {
+            if (e) logger.error('Failed to persist sent_report', { error: e.message });
+          });
+        } catch (persistErr) {
+          logger.error('Error persisting sent_report', { error: persistErr.message });
+        }
+
+        // Create in-app notification for recipient if they are a user in the system
+        try {
+          db.query('SELECT id FROM users WHERE email = ? LIMIT 1', [recipient], (err, results) => {
+            if (!err && results && results[0]) {
+              const recipientUserId = results[0].id;
+              const notifSql = `INSERT INTO notifications (user_id, sender_id, type, title, message, link) VALUES (?, ?, 'system', ?, ?, ?)`;
+              const title = 'Report Sent to You';
+              const message = `A report has been sent to you for project: ${subject || ''}`;
+              const link = `/reports/sent`;
+              db.query(notifSql, [recipientUserId, req.user?.id || null, title, message, link], (nerr) => {
+                if (nerr) logger.error('Failed to create notification for sent report', { error: nerr.message, recipientUserId });
+              });
+            }
+          });
+        } catch (notifErr) {
+          logger.error('Error creating in-app notification for sent report', { error: notifErr.message });
+        }
+
+        res.json({ success: true, messageId: sendResult.messageId });
+  } catch (error) {
+    logger.error('Error in /reports/send', { error: error.message });
+    res.status(500).json(formatEmailError(error));
   }
 });
 

@@ -5,18 +5,22 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
 const { getAssignmentFilter } = require("../middleware/assignmentMiddleware");
 
+const logAuditEvent = (userId, action, details, targetType, targetId) => {
+  const sql = `
+    INSERT INTO audit_logs
+    (user_id, action, details, target_type, target_id, created_at)
+    VALUES (?, ?, ?, ?, ?, NOW())
+  `;
+  db.query(sql, [userId, action, JSON.stringify(details), targetType, targetId]);
+};
 
-// ================= GET PROJECTS WITH TEST CASE STATISTICS (Specific route first!) =================
+// ================= GET PROJECTS WITH TEST CASE STATISTICS =================
 router.get("/projects/with-stats", authMiddleware, (req, res) => {
   const userId = req.user?.id;
   const userRole = req.user?.role;
 
-  // For admins, show all stats. For others, show only assigned items
-  let sql = '';
-
   if (userRole === 'admin') {
-    // Admin sees all statistics
-    sql = `
+    const sql = `
       SELECT 
         p.id,
         p.name,
@@ -43,9 +47,10 @@ router.get("/projects/with-stats", authMiddleware, (req, res) => {
       console.log(`✅ Admin ${userId} fetched projects stats`);
       res.json(results);
     });
+
   } else {
-    // Tester/Developer sees only projects where they have assigned testcases
-    sql = `
+    // ✅ FIX: Developers and testers see projects where they have assigned testcases OR assigned bugs
+    const sql = `
       SELECT 
         p.id,
         p.name,
@@ -67,14 +72,16 @@ router.get("/projects/with-stats", authMiddleware, (req, res) => {
           SELECT id FROM testcases WHERE project_id = p.id AND assigned_to = ?
         )) as failed_executions
       FROM projects p
-      WHERE EXISTS (
-        SELECT 1 FROM testcases t 
-        WHERE t.project_id = p.id AND t.assigned_to = ?
+      WHERE (
+        EXISTS (SELECT 1 FROM testcases t WHERE t.project_id = p.id AND t.assigned_to = ?)
+        OR
+        EXISTS (SELECT 1 FROM bugs b WHERE b.project_id = p.id AND b.assigned_to = ?)
       )
       ORDER BY testcase_count DESC, p.name ASC
     `;
 
-    const params = Array(11).fill(userId); // 11 placeholders for the user ID (10 in SELECT + 1 in WHERE EXISTS)
+    // 10 placeholders in SELECT + 2 in WHERE = 12 total
+    const params = [...Array(10).fill(userId), userId, userId];
 
     db.query(sql, params, (err, results) => {
       if (err) {
@@ -94,7 +101,6 @@ router.get("/projects/:id/testcases", authMiddleware, (req, res) => {
   const userId = req.user?.id;
   const userRole = req.user?.role;
 
-  // Build assignment filter
   const assignmentFilter = getAssignmentFilter(req.user, 't');
   let whereConditions = ['t.project_id = ?'];
   let params = [projectId];
@@ -105,12 +111,12 @@ router.get("/projects/:id/testcases", authMiddleware, (req, res) => {
   }
 
   const sql = `
-    SELECT t.* 
+    SELECT t.*
     FROM testcases t
     WHERE ${whereConditions.join(" AND ")}
-    ORDER BY t.status, t.priority DESC, t.id DESC
+    ORDER BY t.priority DESC, t.id DESC
   `;
-  
+
   db.query(sql, params, (err, results) => {
     if (err) {
       console.error("Fetch project testcases error:", err);
@@ -122,29 +128,32 @@ router.get("/projects/:id/testcases", authMiddleware, (req, res) => {
 });
 
 
-// ================= GET ALL PROJECTS (Generic route last) =================
+// ================= GET ALL PROJECTS =================
 router.get("/projects", authMiddleware, (req, res) => {
   const userId = req.user?.id;
   const userRole = req.user?.role;
 
   if (userRole === 'admin') {
-    // Admin sees all projects
     db.query("SELECT * FROM projects ORDER BY id DESC", (err, results) => {
       if (err) return res.status(500).json({ error: "Failed to fetch projects" });
       console.log(`✅ Admin ${userId} fetched ${results.length} projects`);
       res.json({ projects: results, success: true });
     });
+
   } else {
-    // Tester/Developer sees only projects where they have assigned testcases
+    // ✅ FIX: Show projects where user has assigned testcases OR assigned bugs
     const sql = `
-      SELECT DISTINCT p.* 
+      SELECT DISTINCT p.*
       FROM projects p
-      INNER JOIN testcases t ON p.id = t.project_id
-      WHERE t.assigned_to = ?
+      WHERE (
+        EXISTS (SELECT 1 FROM testcases t WHERE t.project_id = p.id AND t.assigned_to = ?)
+        OR
+        EXISTS (SELECT 1 FROM bugs b WHERE b.project_id = p.id AND b.assigned_to = ?)
+      )
       ORDER BY p.id DESC
     `;
 
-    db.query(sql, [userId], (err, results) => {
+    db.query(sql, [userId, userId], (err, results) => {
       if (err) {
         console.error("Fetch projects error:", err);
         return res.status(500).json({ error: "Failed to fetch projects" });
@@ -160,17 +169,22 @@ router.get("/projects", authMiddleware, (req, res) => {
 router.post("/projects", authMiddleware, requireRole("admin"), (req, res) => {
   const { name, description } = req.body;
 
-  if (!name) return res.status(400).json({ error: "Project name required" });
+  if (!name) {
+    return res.status(400).json({ error: "Project name required" });
+  }
 
   db.query(
     "INSERT INTO projects (name, description) VALUES (?, ?)",
     [name, description || null],
-    err => {
-      if (err) return res.status(500).json({ error: "Project creation failed" });
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: "Project creation failed" });
+      }
+
+      logAuditEvent(req.user.id, "PROJECT_CREATED", { name, description }, "project", result.insertId);
       res.json({ message: "Project created successfully" });
     }
   );
 });
-
 
 module.exports = router;

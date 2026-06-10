@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import TestCaseService from '../services/TestCaseService';
 import { sendSuccess } from '../utils/response';
 import { RequestWithUser, AuthUser } from '../types';

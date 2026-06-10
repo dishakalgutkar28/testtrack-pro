@@ -69,9 +69,11 @@ function CSVImport({ projectId, onImportComplete }) {
 
       console.log(`[CSV] Importing ${csvData.length} test cases with token present:`, !!token);
 
+      const pid = projectId ? parseInt(projectId, 10) : null;
+
       const response = await api.post('/import/testcases', {
         csvData,
-        projectId
+        projectId: pid
       });
 
       console.log('[CSV] Import successful:', response.data);

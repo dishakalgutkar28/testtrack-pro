@@ -19,7 +19,50 @@ function Execute() {
   const [isBugFormOpen, setIsBugFormOpen] = useState(false);
   const [executionMode, setExecutionMode] = useState("basic"); // basic, steps, comparison
   const { theme } = useTheme();
+  const [bulkIds, setBulkIds] = useState("");
+const [bulkStatus, setBulkStatus] = useState("");
+const [projectTestcases, setProjectTestcases] = useState([]);
+const [executionResults, setExecutionResults] = useState({});
+const loadProjectTestcases = async (projectId) => {
+  try {
+    const res = await api.get(`/projects/${projectId}/testcases`);
 
+    console.log("API Response:", res.data);
+
+    setProjectTestcases(res.data || []);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to load project testcases");
+  }
+};
+
+const executeProject = async () => {
+  try {
+    const executions = projectTestcases.map(tc => ({
+      testcase_id: tc.id,
+      status: executionResults[tc.id]?.status || "pending",
+      notes: executionResults[tc.id]?.notes || ""
+    }));
+
+    const res = await api.post("/execution/project", {
+      project_id: projectId,
+      executions
+    });
+
+    setSuccess(
+      `${res.data.count} testcases executed successfully`
+    );
+  } catch (err) {
+  console.error(err);
+
+  setError(
+    err.response?.data?.error ||
+    err.response?.data?.message ||
+    err.message ||
+    "Project execution failed"
+  );
+}
+};
   const submit = () => {
     setError("");
     setSuccess("");
@@ -48,6 +91,38 @@ function Execute() {
       })
       .finally(() => setLoading(false));
   };
+  const submitBulk = () => {
+  setError("");
+  setSuccess("");
+
+  if (!bulkIds.trim() || !bulkStatus.trim()) {
+    setError("Enter testcase IDs and status");
+    return;
+  }
+
+  const ids = bulkIds
+    .split(",")
+    .map(id => id.trim())
+    .filter(id => id);
+
+  api.post("/execution/bulk", {
+    testcase_ids: ids,
+    status: bulkStatus,
+    notes,
+    project_id: projectId
+  })
+    .then((res) => {
+      setSuccess(
+        `${res.data.count} testcases executed successfully`
+      );
+
+      setBulkIds("");
+      setBulkStatus("");
+    })
+    .catch(() => {
+      setError("Bulk execution failed");
+    });
+};
 
   useEffect(() => {
     api.get('/projects').then(r=>setProjects(r.data.projects || [])).catch(()=>{});
@@ -136,10 +211,21 @@ function Execute() {
 
             <div className="form-group">
               <label>Project (optional)</label>
-              <select className="input-field" value={projectId} onChange={e=>setProjectId(e.target.value)}>
-                <option value="">Select project</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+              <select
+  className="input-field"
+  value={projectId}
+  onChange={(e) => {
+    setProjectId(e.target.value);
+    loadProjectTestcases(e.target.value);
+  }}
+>
+  <option value="">Select Project</option>
+  {projects.map(p => (
+    <option key={p.id} value={p.id}>
+      {p.name}
+    </option>
+  ))}
+</select>
             </div>
 
             <button 
@@ -149,6 +235,79 @@ function Execute() {
             >
               {loading ? "Saving..." : "Submit Execution"}
             </button>
+    
+
+{/* ===== PROJECT EXECUTION ===== */}
+
+<hr className="project-divider" />
+
+<h3 className="project-section-title">
+      Execute Entire Project
+</h3>
+
+<table className="execution-table">
+  <thead>
+    <tr>
+      <th>Test Case</th>
+      <th>Status</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {projectTestcases.map(tc => (
+      <tr key={tc.id}>
+        <td>
+  <strong>{tc.title}</strong>
+</td>
+
+        <td>
+          <select
+            value={executionResults[tc.id]?.status || ""}
+            onChange={(e) =>
+              setExecutionResults(prev => ({
+                ...prev,
+                [tc.id]: {
+                  ...prev[tc.id],
+                  status: e.target.value
+                }
+              }))
+            }
+          >
+            <option value="">Select</option>
+            <option value="pass">Pass</option>
+            <option value="fail">Fail</option>
+            <option value="pending">Pending</option>
+          </select>
+        </td>
+
+        <td>
+          <input
+            type="text"
+            placeholder="Notes"
+            value={executionResults[tc.id]?.notes || ""}
+            onChange={(e) =>
+              setExecutionResults(prev => ({
+                ...prev,
+                [tc.id]: {
+                  ...prev[tc.id],
+                  notes: e.target.value
+                }
+              }))
+            }
+          />
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+<button
+  className="submit-btn"
+  onClick={executeProject}
+>
+  Execute Project
+</button>
 
             {status === "fail" && (
               <button 

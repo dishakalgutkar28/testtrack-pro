@@ -18,6 +18,7 @@ function Testcase() {
   const { id } = useParams();
   const [testcases, setTestcases] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTestcase, setEditingTestcase] = useState(null);
   const [error, setError] = useState("");
@@ -46,7 +47,18 @@ function Testcase() {
 
   const fetchProjects = () => {
     api.get('/projects')
-      .then(r => setProjects(r.data || []))
+      .then(r => {
+        // Normalize response which may be { projects: [...] } or an array
+        let list = [];
+        if (Array.isArray(r.data)) list = r.data;
+        else if (Array.isArray(r.data?.projects)) list = r.data.projects;
+        else if (Array.isArray(r.data?.results)) list = r.data.results;
+
+        setProjects(list);
+        if (!selectedProjectId && list.length > 0) {
+          setSelectedProjectId(list[0].id);
+        }
+      })
       .catch(() => console.log("Failed to load projects"));
   };
 
@@ -167,15 +179,54 @@ function Testcase() {
 
         {/* CSV Import Section */}
         {showCSVImport && (role === "tester" || role === "admin") && (
-          <CSVImport 
-            projectId={null}
-            onImportComplete={fetchTestcases}
-          />
+          <>
+            <div className="csv-project-select" style={{marginBottom: '12px'}}>
+              <label style={{marginRight: '8px'}}>Project:</label>
+              <select value={selectedProjectId || ''} onChange={(e) => setSelectedProjectId(e.target.value)}>
+                <option value="">-- No project --</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.name || p.title || p.id}</option>
+                ))}
+              </select>
+            </div>
+
+            <CSVImport 
+              projectId={selectedProjectId}
+              onImportComplete={fetchTestcases}
+            />
+          </>
         )}
 
         <div className={`testcase-layout ${role === "developer" ? "full-width" : ""}`}>
 
           <div className="list-section">
+            <div className="testcase-stats">
+  <div className="stat-card">
+    <h3>{testcases.length}</h3>
+    <p>Total Cases</p>
+  </div>
+
+  <div className="stat-card">
+    <h3>
+      {testcases.filter(t=>t.priority==="high").length}
+    </h3>
+    <p>High Priority</p>
+  </div>
+
+  <div className="stat-card">
+    <h3>
+      {testcases.filter(t=>t.priority==="medium").length}
+    </h3>
+    <p>Medium</p>
+  </div>
+
+  <div className="stat-card">
+    <h3>
+      {testcases.filter(t=>t.priority==="low").length}
+    </h3>
+    <p>Low</p>
+  </div>
+</div>
             <div className="list-card">
               {role === "developer" && (
                 <div className="info-banner">

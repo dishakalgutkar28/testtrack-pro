@@ -4,14 +4,14 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { validationResult, ValidationError as ExpressValidationError } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { ValidationError } from '@testtrack-pro/shared';
 
 /**
  * Validate request middleware
  * Checks validation results and returns errors if any
  */
-export const validate = (req: Request, res: Response, next: NextFunction): void => {
+export const validate = (req: Request, _res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -34,7 +34,7 @@ export const validate = (req: Request, res: Response, next: NextFunction): void 
  * Sanitize input middleware
  * Additional XSS protection
  */
-export const sanitizeInput = (req: Request, res: Response, next: NextFunction): void => {
+export const sanitizeInput = (req: Request, _res: Response, next: NextFunction): void => {
   // Recursively sanitize object
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {

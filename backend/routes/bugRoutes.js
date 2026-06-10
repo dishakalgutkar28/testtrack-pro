@@ -9,6 +9,30 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const { requireRole } = require("../middleware/roleMiddleware");
 const { getAssignmentFilter } = require("../middleware/assignmentMiddleware");
 
+const logAuditEvent = (
+  userId,
+  action,
+  details,
+  targetType,
+  targetId
+) => {
+  const sql = `
+    INSERT INTO audit_logs
+    (user_id, action, details, target_type, target_id, created_at)
+    VALUES (?, ?, ?, ?, ?, NOW())
+  `;
+
+  db.query(
+    sql,
+    [
+      userId,
+      action,
+      JSON.stringify(details),
+      targetType,
+      targetId
+    ]
+  );
+};
 
 // ================= CREATE BUG =================
 router.post(
@@ -63,7 +87,13 @@ router.post(
             error: "Failed to create bug",
           });
         }
-
+        logAuditEvent(
+  req.user.id,
+  "BUG_CREATED",
+  { title },
+  "bug",
+  result.insertId
+);
         res.status(201).json({
           message: "Bug created successfully",
           id: result.insertId,
@@ -258,6 +288,13 @@ router.put(
               logger.error("Error sending notifications", { error: notifyError });
             }
           })();
+          logAuditEvent(
+  req.user.id,
+  "BUG_UPDATED",
+  req.body,
+  "bug",
+  bugId
+);
 
           res.json({
             message: "Bug updated successfully",
@@ -291,6 +328,13 @@ router.delete(
             error: "Bug not found",
           });
         }
+        logAuditEvent(
+  req.user.id,
+  "BUG_DELETED",
+  {},
+  "bug",
+  req.params.id
+);
 
         res.json({
           message: "Bug deleted successfully",

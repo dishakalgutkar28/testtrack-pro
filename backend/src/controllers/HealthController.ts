@@ -9,7 +9,7 @@ import { createPool } from 'mysql2/promise';
 /**
  * Basic health check
  */
-export const healthCheck = async (req: Request, res: Response): Promise<void> => {
+export const healthCheck = async (_req: Request, res: Response): Promise<void> => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -22,7 +22,7 @@ export const healthCheck = async (req: Request, res: Response): Promise<void> =>
 /**
  * Detailed health check with dependencies
  */
-export const detailedHealthCheck = async (req: Request, res: Response): Promise<void> => {
+export const detailedHealthCheck = async (_req: Request, res: Response): Promise<void> => {
   const health = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -114,7 +114,7 @@ function checkCPU(): any {
 /**
  * System information endpoint
  */
-export const systemInfo = async (req: Request, res: Response): Promise<void> => {
+export const systemInfo = async (_req: Request, res: Response): Promise<void> => {
   res.status(200).json({
     service: 'TestTrack Pro API',
     version: '1.0.0',

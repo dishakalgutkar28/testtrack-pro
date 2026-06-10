@@ -357,13 +357,13 @@ function DeveloperBug() {
                         </div>
                       </div>
                     ) : (
-                      <p className="fix-notes-display">
-                        {bug.fix_notes ? (
-                          <pre>{bug.fix_notes}</pre>
-                        ) : (
-                          <em className="no-notes">No fix notes yet. Click expand to add notes.</em>
-                        )}
-                      </p>
+                     <div className="fix-notes-display">
+  {bug.fix_notes ? (
+    <pre>{bug.fix_notes}</pre>
+  ) : (
+    <em className="no-notes">No fix notes yet. Click expand to add notes.</em>
+  )}
+</div>
                     )}
                   </div>
 
