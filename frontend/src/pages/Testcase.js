@@ -30,10 +30,7 @@ function Testcase() {
   const { theme } = useTheme();
   const role = localStorage.getItem("role");
 
-  useEffect(() => {
-  fetchTestcases();
-  fetchProjects();
-}, [fetchProjects]);
+  
 
   // Auto-open test case detail if ID in URL
   useEffect(() => {
@@ -80,6 +77,10 @@ function Testcase() {
         setError("Failed to load testcases");
       });
   };
+  useEffect(() => {
+    fetchTestcases();
+    fetchProjects();
+  }, []);
 
   const handleFormSuccess = () => {
     setSuccess(editingTestcase ? "Test case updated successfully!" : "Test case created successfully!");

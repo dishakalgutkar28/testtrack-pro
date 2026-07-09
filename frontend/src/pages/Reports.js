@@ -270,7 +270,7 @@ function Reports() {
       const message = [serverError, serverDetails].filter(Boolean).join(': ') || err?.message || 'Failed to send report';
       const isAuthError = /authentication|invalid login|smtp|credentials|535/i.test(message);
       if (isAuthError) {
-        alert(`${message}\n\nTip: Click \"Open Mail Client\" to send manually, or update backend SMTP credentials.`);
+        alert('Tip: Click "Open Mail Client" to send manually, or update backend SMTP credentials.');
       } else {
         alert(message);
       }
