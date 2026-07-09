@@ -77,10 +77,10 @@ function Testcase() {
         setError("Failed to load testcases");
       });
   };
-  useEffect(() => {
-    fetchTestcases();
-    fetchProjects();
-  }, []);
+ useEffect(() => {
+  fetchTestcases();
+  fetchProjects();
+}, [fetchProjects]);
 
   const handleFormSuccess = () => {
     setSuccess(editingTestcase ? "Test case updated successfully!" : "Test case created successfully!");
