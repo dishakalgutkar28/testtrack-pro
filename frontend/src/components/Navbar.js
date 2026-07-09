@@ -73,9 +73,6 @@ function Navbar() {
             <button className="nav-btn" onClick={() => navigate("/testcase")}>
               Test Cases
             </button>
-            <button className="nav-btn" onClick={() => navigate("/execution-history")}>
-              History
-            </button>
             <button className="nav-btn" onClick={() => navigate("/bug")}>
               Fix Bugs
             </button>

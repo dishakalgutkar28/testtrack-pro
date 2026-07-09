@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
@@ -31,9 +31,9 @@ function Testcase() {
   const role = localStorage.getItem("role");
 
   useEffect(() => {
-    fetchTestcases();
-    fetchProjects();
-  }, []);
+  fetchTestcases();
+  fetchProjects();
+}, [fetchProjects]);
 
   // Auto-open test case detail if ID in URL
   useEffect(() => {
@@ -45,22 +45,29 @@ function Testcase() {
     }
   }, [id, testcases]);
 
-  const fetchProjects = () => {
-    api.get('/projects')
-      .then(r => {
-        // Normalize response which may be { projects: [...] } or an array
-        let list = [];
-        if (Array.isArray(r.data)) list = r.data;
-        else if (Array.isArray(r.data?.projects)) list = r.data.projects;
-        else if (Array.isArray(r.data?.results)) list = r.data.results;
+ const fetchProjects = useCallback(() => {
+  api.get("/projects")
+    .then((r) => {
+      let list = [];
 
-        setProjects(list);
-        if (!selectedProjectId && list.length > 0) {
-          setSelectedProjectId(list[0].id);
-        }
-      })
-      .catch(() => console.log("Failed to load projects"));
-  };
+      if (Array.isArray(r.data)) {
+        list = r.data;
+      } else if (Array.isArray(r.data?.projects)) {
+        list = r.data.projects;
+      } else if (Array.isArray(r.data?.results)) {
+        list = r.data.results;
+      }
+
+      setProjects(list);
+
+      if (!selectedProjectId && list.length > 0) {
+        setSelectedProjectId(list[0].id);
+      }
+    })
+    .catch(() => {
+      console.log("Failed to load projects");
+    });
+}, [selectedProjectId]);
 
   const fetchTestcases = () => {
     api.get("/testcase")

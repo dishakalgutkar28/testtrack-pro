@@ -228,13 +228,20 @@ const executeProject = async () => {
 </select>
             </div>
 
-            <button 
-              className="submit-btn" 
-              onClick={submit}
-              disabled={loading}
-            >
-              {loading ? "Saving..." : "Submit Execution"}
-            </button>
+            <button
+  className="submit-btn"
+  onClick={submit}
+  disabled={loading}
+>
+  {loading ? "Saving..." : "Submit Execution"}
+</button>
+
+<button
+  className="submit-btn"
+  onClick={submitBulk}
+>
+  Execute Bulk
+</button>
     
 
 {/* ===== PROJECT EXECUTION ===== */}

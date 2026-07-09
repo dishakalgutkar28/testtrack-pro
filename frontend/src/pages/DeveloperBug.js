@@ -3,7 +3,7 @@ import api from "../services/api";
 import Navbar from "../components/Navbar";
 import Comments from "../components/Comments";
 import { useTheme } from "../context/ThemeContext";
-import "./Bug.css";
+import "./Developer.css";
 
 function DeveloperBug() {
   const [bugs, setBugs] = useState([]);
